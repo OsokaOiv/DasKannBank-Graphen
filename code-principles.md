@@ -15,6 +15,9 @@ Funktionen sollten idealerweise unter 20–30 Zeilen bleiben. Wenn eine Funktion
 ## Keine Magic Numbers/Strings
 Zahlen und Strings mit Bedeutung (z. B. `dpi=150`, `bar_width=20`) als benannte Konstante oder Parameter definieren, nicht hartkodiert im Funktionskörper.
 
+## Kein Dead Code
+Nicht mehr verwendete Imports, Variablen, Funktionen oder Parameter entfernen. Sie verwirren und täuschen vor, dass Funktionalität existiert, die es gar nicht gibt. Vor jedem Commit: kurz prüfen, ob alle Imports noch gebraucht werden.
+
 ## Fehler früh abfangen
 Ungültige Daten (fehlende Spalten, NaT-Daten, leere DataFrames) so früh wie möglich erkennen und mit klarer Meldung abbrechen. Keine `except: pass`-Schlaufen.
 
