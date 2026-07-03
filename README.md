@@ -79,7 +79,8 @@ source .venv/bin/activate && python3 pipeline.py
 
 Anonymisierte PDF-Kontoauszüge in `pdf/` ablegen, dann:
 ```bash
-make pdf2csv
+make pdf2csv              # normale Ausführung
+python3 pdf2csv.py --debug  # mit Debug-Ausgabe (extrahierten Text als .txt speichern)
 ```
 Erzeugt für jede PDF eine CSV in `csv/` im gleichen Format wie der DKB-Export. Anschließend wie gewohnt `make run`.
 ```
