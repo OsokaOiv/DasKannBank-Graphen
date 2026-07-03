@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 import tomllib
 import pandas as pd
@@ -161,6 +162,20 @@ def plot_yearly_pies(expenses: pd.DataFrame) -> None:
         )
 
 
+def plot_monthly_pies(expenses: pd.DataFrame) -> None:
+    for month in sorted(expenses["Monat"].unique()):
+        monthly = expenses[expenses["Monat"] == month]
+        report = monthly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False)
+        if report.empty:
+            continue
+        _plot_pie_chart(
+            labels=report.index.tolist(),
+            values=report.values.tolist(),
+            title=f"Ausgaben {month.strftime('%b %Y')} (Gesamt: {report.sum():.2f} €)",
+            filename=f"ausgaben_{month.strftime('%Y-%m')}.png",
+        )
+
+
 def print_table(report: dict[str, float], title: str = "") -> None:
     total = sum(report.values())
     if title:
@@ -231,14 +246,32 @@ def print_all_tables(expenses: pd.DataFrame) -> None:
     print_uncategorized(expenses)
 
 
-def plot_all_charts(expenses: pd.DataFrame) -> None:
-    report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
-    plot_pie(report)
-    plot_monthly_stacked(expenses)
-    plot_yearly_pies(expenses)
+def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
+    if "total" in charts:
+        report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
+        plot_pie(report)
+    if "monthly" in charts:
+        plot_monthly_stacked(expenses)
+        plot_monthly_pies(expenses)
+    if "yearly" in charts:
+        plot_yearly_pies(expenses)
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Ausgaben-Pipeline für DKB-Kontoauszüge")
+    parser.add_argument(
+        "charts", nargs="?", choices=["all", "total", "yearly", "monthly"], default="all",
+        help="Welche Diagramme erstellt werden sollen (default: all)",
+    )
+    args = parser.parse_args()
+
+    chart_map = {
+        "all": {"total", "yearly", "monthly"},
+        "total": {"total"},
+        "yearly": {"yearly"},
+        "monthly": {"monthly"},
+    }
+
     GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
 
     categories = load_categories(CATEGORIES_FILE)
@@ -250,7 +283,7 @@ def main() -> None:
 
     expenses = prepare_expenses(df, categories)
     print_all_tables(expenses)
-    plot_all_charts(expenses)
+    plot_all_charts(expenses, chart_map[args.charts])
 
 
 if __name__ == "__main__":
