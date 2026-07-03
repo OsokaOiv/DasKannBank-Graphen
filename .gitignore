@@ -1,4 +1,5 @@
 .venv/
 graphs/
 csv/
+pdf/
 __pycache__/
