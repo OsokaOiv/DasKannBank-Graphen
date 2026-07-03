@@ -2,7 +2,7 @@ VENV = .venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 
-.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies pdf2csv test clean
+.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies pdf2csv test clean app
 
 help:
 	@echo "Verfügbare Befehle:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make run-monthly       — Nur monatliche Diagramme (Linie + Balken)"
 	@echo "  make run-monthly-pies  — Nur Kreisdiagramme pro Monat"
 	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren (benötigt anonymisierte PDFs)"
+	@echo "  make app               — Streamlit-Dashboard starten (interaktiv)"
 	@echo "  make test              — Tests ausführen (pytest)"
 	@echo "  make clean             — Diagramme, venv und gecachte PDF-Daten löschen"
 
@@ -20,7 +21,7 @@ $(VENV):
 	python3 -m venv $(VENV)
 
 install: $(VENV)
-	$(PIP) install matplotlib pandas pdfplumber pytest
+	$(PIP) install matplotlib pandas pdfplumber pytest streamlit plotly
 
 run: $(VENV)
 	$(PYTHON) pipeline.py
@@ -42,6 +43,9 @@ test: $(VENV)
 
 pdf2csv: $(VENV)
 	$(PYTHON) pdf2csv.py
+
+app: $(VENV)
+	$(VENV)/bin/streamlit run app.py
 
 clean:
 	rm -rf graphs/*.png
