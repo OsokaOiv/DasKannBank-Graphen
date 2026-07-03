@@ -1,7 +1,7 @@
+import argparse
 import csv
 import logging
 import re
-from datetime import datetime
 from pathlib import Path
 
 from pdfplumber import open as open_pdf
@@ -9,16 +9,16 @@ from pdfplumber import open as open_pdf
 PDF_DIR = Path(__file__).parent / "pdf"
 CSV_DIR = Path(__file__).parent / "csv"
 
-DECIMAL = r"\d{1,3}(?:\.\d{3})*(?:,\d+)?"
 DECIMAL_FIXED = r"\d{1,3}(?:\.\d{3})*(?:,\d{2})"
 DATE_NO_YEAR = r"(\d\d)\.(\d\d)\."
-BLANK = r"\s{3,}"
 
 re_range = re.compile(r"Kontoauszug Nummer (\d*) / (\d*) vom (\d\d)\.(\d\d)\.(\d\d\d\d) bis (\d\d)\.(\d\d)\.(\d\d\d\d)")
 re_account = re.compile(r"Kontonummer (\d*) / IBAN ([A-Z0-9 ]*)")
 re_table_header = re.compile(r"(Bu\.Tag)\s+(Wert)\s+(Wir haben für Sie gebucht)")
+
+# flexible transaction: dates separated by spaces, then text, then optional sign + amount
 re_transaction = re.compile(
-    rf"^\s*({DATE_NO_YEAR})\s+({DATE_NO_YEAR})\s+(.+?)\s+([\-+SH])?({DECIMAL_FIXED})\s*$"
+    rf"^\s*(\d\d)\.(\d\d)\.\s+(\d\d)\.(\d\d)\.\s+(.+?)\s+([\-+SH])?({DECIMAL_FIXED})\s*$"
 )
 re_detail = re.compile(r"^\s{3,}(.+)$")
 
@@ -104,6 +104,10 @@ def write_csv(transactions: list[dict], out_path: Path) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="DKB-PDF zu CSV Konverter")
+    parser.add_argument("--debug", action="store_true", help="Extrahierten Text als .txt speichern")
+    args = parser.parse_args()
+
     pdf_files = scan_pdfs()
     if not pdf_files:
         print("Keine PDF-Dateien im Ordner 'pdf/' gefunden.")
@@ -112,9 +116,20 @@ def main() -> None:
     for pdf_path in pdf_files:
         print(f"Verarbeite {pdf_path.name} ...")
         text = extract_text_from_pdf(pdf_path)
+
+        if args.debug:
+            dump_path = pdf_path.with_suffix(".txt")
+            dump_path.write_text(text, encoding="utf-8")
+            print(f"  -> Text extrahiert nach {dump_path.name}")
+
         transactions = parse_bank_statement(text)
         if not transactions:
-            print(f"  Keine Transaktionen gefunden in {pdf_path.name}")
+            non_empty = sum(1 for line in text.splitlines() if line.strip())
+            print(f"  Keine Transaktionen gefunden ({non_empty} nicht-leere Zeilen)")
+            if args.debug:
+                print(f"  -> Ersten 30 Zeilen:")
+                for i, line in enumerate(text.splitlines()[:30]):
+                    print(f"     [{i:>2}] {line}")
             continue
 
         out_path = CSV_DIR / f"{pdf_path.stem}.csv"
