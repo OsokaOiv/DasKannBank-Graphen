@@ -10,6 +10,16 @@ make run         # Alle Diagramme (PNG)
 make app         # Interaktives Dashboard (Browser)
 ```
 
+### Windows
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python pipeline.py          # Alle Diagramme (PNG)
+streamlit run app.py        # Interaktives Dashboard (Browser)
+```
+
 ## Dokumentation
 
 | Thema | Inhalt |
