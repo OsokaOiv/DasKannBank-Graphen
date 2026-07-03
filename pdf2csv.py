@@ -12,6 +12,11 @@ CSV_DIR = Path(__file__).parent / "csv"
 AMOUNT_END = re.compile(r"\s+([\-+])?\s*(\d{1,3}(?:\.\d{3})*(?:,\d{2}))\s*$")
 DATE_START = re.compile(r"^(\d\d)\.(\d\d)\.(\d{4})")
 LINE_DATE = re.compile(r"^\s*(\d\d)\.(\d\d)\.(\d{4})")
+FOOTER_START = re.compile(
+    r"^(Kontostand\s+am|Neuer\s+Kontostand|Gesamtumsatzsummen|Summe\s+Soll|"
+    r"Summe\s+Haben|Deutsche\s+Kreditbank|Vorsitzender\s+des\s+Aufsichtsrats|"
+    r"Seite\s+\d+\s+von\s+\d+|Kontoauszug\s+\d+/)"
+)
 
 
 def extract_text_from_pdf(path: Path) -> str:
@@ -65,6 +70,10 @@ def parse_bank_statement(text: str) -> list[dict]:
                 "Kundenreferenz": "",
             })
             in_transaction = True
+            continue
+
+        if FOOTER_START.match(raw_line):
+            in_transaction = False
             continue
 
         if in_transaction and transactions:
