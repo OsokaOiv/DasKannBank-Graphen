@@ -2,11 +2,23 @@
 
 ## Setup
 
+### Linux / macOS
+
 ```bash
 make install
 ```
 
 Erzeugt eine virtuelle Umgebung (`.venv`) und installiert alle Abhängigkeiten.
+
+### Windows
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Ohne `make` (nicht vorinstalliert) kommt `requirements.txt` zum Einsatz – die enthält dieselben Pakete.
 
 ## CLI (statische Diagramme)
 
@@ -113,3 +125,20 @@ make clean
 ```
 
 Löscht `graphs/*.png` und die virtuelle Umgebung `.venv/`.
+
+## Windows: Befehle ohne `make`
+
+Alle Python-Befehle funktionieren identisch – nur der Aufruf unterscheidet sich:
+
+| Aufgabe | Linux/macOS (make) | Windows (PowerShell) |
+|---|---|---|
+| Setup | `make install` | `.venv\Scripts\activate` + `pip install -r requirements.txt` |
+| Pipeline (alle) | `make run` | `.venv\Scripts\activate` + `python pipeline.py` |
+| Pipeline (total) | `make run-total` | `.venv\Scripts\activate` + `python pipeline.py total` |
+| Dashboard | `make app` | `.venv\Scripts\activate` + `streamlit run app.py` |
+| PDF → CSV | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |
+| Tests | `make test` | `.venv\Scripts\activate` + `python -m pytest tests/ -v` |
+| Aufräumen | `make clean` | `Remove-Item graphs\*.png -Force; Remove-Item .venv -Recurse -Force` |
+
+**Hinweis:** Das venv muss vor jedem Befehl aktiviert werden (`.venv\Scripts\activate`).
+Wer `make` auf Windows nutzen möchte, installiert es z. B. via Chocolatey: `choco install make`.

@@ -94,4 +94,12 @@ from app import filter_expenses
 
 - Zwei Arbeitskopien: `Projects/DasKannBank-Graphen` (Entwicklung) und `DKB/DasKannBank-Graphen` (echte Daten)
 - Git Push/Pull manuell zwischen den Umgebungen
-- Nach Pull immer `make install` (falls neue Abhängigkeiten)
+- Nach Pull immer `make install` (Linux/macOS) oder `pip install -r requirements.txt` (Windows)
+
+## Cross-Plattform-Hinweise
+
+- **Pfade**: Alle Pfade im Code verwenden `pathlib.Path` – funktioniert auf Linux, macOS und Windows
+- **Python-Version**: Beliebig ≥ 3.10
+- **Makefile**: Nur für Linux/macOS; auf Windows `requirements.txt` + direkte Python-/Streamlit-Befehle verwenden (siehe [Nutzung](usage.md#windows-befehle-ohne-make))
+- **Venv**: Windows nutzt `.venv\Scripts\activate` statt `.venv/bin/activate`
+- **Encoding**: CSVs werden mit `utf-8-sig` gelesen – funktioniert auf allen Plattformen
