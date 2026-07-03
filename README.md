@@ -7,9 +7,11 @@ Pipeline zum Auswerten von DKB-Kontoauszügen (CSV) und Visualisieren der Ausgab
 ```
 .
 ├── csv/                ← Kontoauszüge als CSV hier ablegen
+├── pdf/                ← Anonymisierte PDFs zum Konvertieren
 ├── graphs/             ← generierte Diagramme
 ├── categories.toml     ← Keyword-Regeln für Kategorien
-├── pipeline.py         ← Hauptskript
+├── pipeline.py         ← Hauptskript (CSV → Diagramme)
+├── pdf2csv.py          ← PDF → CSV Konverter
 ├── Makefile            ← Hilfsbefehle
 └── .venv/              ← virtuelle Python-Umgebung
 ```
@@ -72,3 +74,14 @@ Aufruf ohne venv:
 ```bash
 source .venv/bin/activate && python3 pipeline.py
 ```
+
+## PDF-Konvertierung (optional)
+
+Anonymisierte PDF-Kontoauszüge in `pdf/` ablegen, dann:
+```bash
+make pdf2csv
+```
+Erzeugt für jede PDF eine CSV in `csv/` im gleichen Format wie der DKB-Export. Anschließend wie gewohnt `make run`.
+```
+
+
