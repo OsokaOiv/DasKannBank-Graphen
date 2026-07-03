@@ -39,6 +39,7 @@ Jede Änderung durchläuft diesen Zyklus:
 2. **Todos setzen** – Arbeit in kleine Schritte zerlegen (`todowrite`)
 3. **Implementieren** – Code schreiben (einzeln, testbar)
 4. **Testen** – `python3 pipeline.py` ausführen, Output prüfen
-5. **Code-Qualität prüfen** – Gegen diese Prinzipien reviewen
-6. **Nochmal testen** – Sicherstellen, dass nichts kaputt ging
-7. **Committen** – Sauberer Commit mit aussagekräftiger Nachricht
+5. **Dokumentation aktualisieren** – README, Makefile-Help, code-principles.md bei Bedarf anpassen
+6. **Code-Qualität prüfen** – Gegen diese Prinzipien reviewen
+7. **Nochmal testen** – Sicherstellen, dass nichts kaputt ging
+8. **Committen** – Sauberer Commit mit aussagekräftiger Nachricht
