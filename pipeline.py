@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import warnings
 from datetime import datetime
+from matplotlib.patheffects import withStroke
 
 CSV_DIR = Path(__file__).parent / "csv"
 GRAPHS_DIR = Path(__file__).parent / "graphs"
@@ -128,6 +129,7 @@ def plot_monthly_stacked(monthly: pd.DataFrame):
                     f"{v:.2f}",
                     ha="center", va="center",
                     fontsize=8, fontweight="bold", color="white",
+                    path_effects=[withStroke(linewidth=2, foreground="black")],
                 )
 
     ax.set_title("Ausgaben pro Monat nach Kategorie", fontsize=14, fontweight="bold")
