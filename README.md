@@ -41,11 +41,11 @@ Die Pipeline:
 Nicht zugeordnete Ausgaben landen automatisch in **Sonstige**.
 
 ```toml
-[groceries]
+[Lebensmittel]
 keywords = ["REWE", "Lidl", "EDEKA"]
 
-[dining]
-keywords = ["RESTAURANT", "MCDONALD"]
+["Essen & Trinken"]
+keywords = ["RESTAURANT"]
 ```
 
 Keyword-Vergleich erfolgt **Groß-/Kleinschreibungsunabhängig** (alles wird in Großbuchstaben geprüft).

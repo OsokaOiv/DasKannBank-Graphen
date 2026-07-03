@@ -74,31 +74,32 @@ def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.
     return df.apply(categorize, axis=1)
 
 
-def plot_pie(report: dict[str, float]):
-    GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
-
-    labels = list(report.keys())
-    values = list(report.values())
+def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename: str):
     total = sum(values)
-
     fig, ax = plt.subplots(figsize=(10, 7))
     wedges, texts, autotexts = ax.pie(
         values, labels=None, autopct="", startangle=90, textprops={"fontsize": 9},
     )
-    ax.set_title(f"Ausgaben nach Kategorie (Gesamt: {total:.2f} €)", fontsize=14, fontweight="bold")
-
+    ax.set_title(title, fontsize=14, fontweight="bold")
     legend_labels = [f"{l} — {v:.2f} € ({v/total*100:.1f}%)" for l, v in zip(labels, values)]
     ax.legend(wedges, legend_labels, title="Kategorien", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-
     plt.tight_layout()
-    out_path = GRAPHS_DIR / "ausgaben_nach_kategorie.png"
+    out_path = GRAPHS_DIR / filename
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Diagramm gespeichert: {out_path}")
 
 
+def plot_pie(report: dict[str, float]):
+    _plot_pie_chart(
+        labels=list(report.keys()),
+        values=list(report.values()),
+        title=f"Ausgaben nach Kategorie (Gesamt: {sum(report.values()):.2f} €)",
+        filename="ausgaben_nach_kategorie.png",
+    )
+
+
 def plot_monthly_stacked(monthly: pd.DataFrame):
-    GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
 
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
@@ -144,6 +145,20 @@ def plot_monthly_stacked(monthly: pd.DataFrame):
     print(f"Diagramm gespeichert: {out_path}")
 
 
+def plot_yearly_pies(expenses: pd.DataFrame):
+    for year in sorted(expenses["Jahr"].unique()):
+        yearly = expenses[expenses["Jahr"] == year]
+        report = yearly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False)
+        if report.empty:
+            continue
+        _plot_pie_chart(
+            labels=report.index.tolist(),
+            values=report.values.tolist(),
+            title=f"Ausgaben {year} (Gesamt: {report.sum():.2f} €)",
+            filename=f"ausgaben_{year}.png",
+        )
+
+
 def print_table(report: dict[str, float], title: str = ""):
     total = sum(report.values())
     if title:
@@ -172,7 +187,36 @@ def print_monthly_table(monthly: pd.DataFrame):
     print("=" * 60)
 
 
+def prepare_expenses(df: pd.DataFrame, categories: dict) -> pd.DataFrame:
+    expenses = df[df["Betrag"] < 0].copy()
+    expenses["Betrag"] = expenses["Betrag"].abs()
+    expenses = expenses.dropna(subset=["Datum"])
+    expenses["Kategorie"] = assign_categories(expenses, categories)
+    expenses["Monat"] = expenses["Datum"].dt.to_period("M").dt.to_timestamp()
+    expenses["Jahr"] = expenses["Datum"].dt.year
+    return expenses
+
+
+def print_all_tables(expenses: pd.DataFrame):
+    report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
+    print_table(report, "Gesamtausgaben")
+    print_monthly_table(expenses)
+    for year in sorted(expenses["Jahr"].unique()):
+        yearly = expenses[expenses["Jahr"] == year]
+        yr = yearly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
+        print_table(yr, f"Ausgaben {year}")
+
+
+def plot_all_charts(expenses: pd.DataFrame):
+    report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
+    plot_pie(report)
+    plot_monthly_stacked(expenses)
+    plot_yearly_pies(expenses)
+
+
 def main():
+    GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
+
     categories = load_categories(CATEGORIES_FILE)
     df = load_transactions()
 
@@ -180,17 +224,9 @@ def main():
         print("Keine CSV-Dateien im Ordner 'csv/' gefunden.")
         return
 
-    expenses = df[df["Betrag"] < 0].copy()
-    expenses["Betrag"] = expenses["Betrag"].abs()
-    expenses["Kategorie"] = assign_categories(expenses, categories)
-    expenses["Monat"] = expenses["Datum"].dt.to_period("M").dt.to_timestamp()
-
-    report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
-    print_table(report, "Gesamtausgaben")
-    print_monthly_table(expenses)
-
-    plot_pie(report)
-    plot_monthly_stacked(expenses)
+    expenses = prepare_expenses(df, categories)
+    print_all_tables(expenses)
+    plot_all_charts(expenses)
 
 
 if __name__ == "__main__":
