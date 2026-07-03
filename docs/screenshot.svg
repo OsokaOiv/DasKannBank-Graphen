@@ -1,7 +1,12 @@
-<svg width="700" height="400" xmlns="http://www.w3.org/2000/svg">
-  <rect width="700" height="400" fill="#f0f2f6" rx="8"/>
-  <rect x="1" y="1" width="698" height="398" fill="none" stroke="#d0d5dd" stroke-width="2" rx="8" stroke-dasharray="8,4"/>
-  <text x="350" y="170" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#667085">Dashboard Screenshot</text>
-  <text x="350" y="200" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#98a2b3">Ersetzen mit einem echten Screenshot von</text>
-  <text x="350" y="225" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#98a2b3">http://localhost:8501</text>
+<svg width="700" height="460" xmlns="http://www.w3.org/2000/svg">
+  <rect width="700" height="460" fill="#f0f2f6" rx="8"/>
+  <rect x="1" y="1" width="698" height="458" fill="none" stroke="#d0d5dd" stroke-width="2" rx="8" stroke-dasharray="8,4"/>
+  <text x="350" y="120" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#667085">Dashboard Screenshot</text>
+  <text x="350" y="165" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#98a2b3">So generierst du einen Screenshot mit Beispieldaten:</text>
+  <text x="350" y="200" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">1. cp docs/sample_data.csv csv/</text>
+  <text x="350" y="225" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">2. make app (oder streamlit run app.py)</text>
+  <text x="350" y="250" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">3. Browser öffnen → http://localhost:8501</text>
+  <text x="350" y="275" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">4. Screenshot machen → als docs/screenshot.png speichern</text>
+  <text x="350" y="325" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">Danach im README den Dateinamen von screenshot.svg auf screenshot.png ändern:</text>
+  <text x="350" y="350" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#98a2b3">&lt;img src=&quot;docs/screenshot.png&quot; alt=&quot;Dashboard Screenshot&quot; width=&quot;700&quot;/&gt;</text>
 </svg>
