@@ -241,6 +241,7 @@ def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
         plot_pie(report)
     if "monthly" in charts:
         plot_monthly_lines(expenses)
+    if "monthly-pies" in charts:
         plot_monthly_pies(expenses)
     if "yearly" in charts:
         plot_yearly_pies(expenses)
@@ -249,16 +250,17 @@ def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ausgaben-Pipeline für DKB-Kontoauszüge")
     parser.add_argument(
-        "charts", nargs="?", choices=["all", "total", "yearly", "monthly"], default="all",
+        "charts", nargs="?", choices=["all", "total", "yearly", "monthly", "monthly-pies"], default="all",
         help="Welche Diagramme erstellt werden sollen (default: all)",
     )
     args = parser.parse_args()
 
     chart_map = {
-        "all": {"total", "yearly", "monthly"},
+        "all": {"total", "yearly", "monthly", "monthly-pies"},
         "total": {"total"},
         "yearly": {"yearly"},
         "monthly": {"monthly"},
+        "monthly-pies": {"monthly-pies"},
     }
 
     GRAPHS_DIR.mkdir(parents=True, exist_ok=True)

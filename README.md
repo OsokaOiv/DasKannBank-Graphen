@@ -31,11 +31,19 @@ Die Pipeline:
 2. Filtert Ausgaben (negative Beträge)
 3. Kategorisiert anhand der Regeln in `categories.toml`
 4. Zeigt eine Gesamt-Tabelle + monatliche Aufschlüsselung
-5. Erzeugt zwei Diagramme in `graphs/`:
+5. Erzeugt Diagramme in `graphs/`:
    - `ausgaben_nach_kategorie.png` – Kreisdiagramm (Gesamt)
    - `ausgaben_pro_monat.png` – Liniendiagramm (monatlicher Verlauf pro Kategorie)
    - `ausgaben_YYYY.png` – Kreisdiagramm pro Jahr
    - `ausgaben_YYYY-MM.png` – Kreisdiagramm pro Monat
+
+Selektive Ausführung über CLI-Argumente:
+```bash
+python3 pipeline.py total       # nur Gesamt-Kreisdiagramm
+python3 pipeline.py yearly      # nur Jahres-Kreisdiagramme
+python3 pipeline.py monthly     # nur Liniendiagramm
+python3 pipeline.py monthly-pies  # nur Monats-Kreisdiagramme
+```
 
 ## Kategorien anpassen
 

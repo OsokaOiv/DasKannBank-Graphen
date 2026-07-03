@@ -32,3 +32,13 @@ Alles, was sich ändern kann (Kategorie-Keywords, Schwellwerte, Format-Einstellu
 
 ## if __name__ == "__main__"
 Das Hauptprogramm hat nur minimale Logik (Konstanten setzen, `main()` aufrufen). Die eigentliche Arbeit delegiert `main()` an spezialisierte Funktionen.
+
+## Pipeline-Workflow
+Jede Änderung durchläuft diesen Zyklus:
+1. **Planen** – Was ist das Ziel? (User-Frage verstehen, ggf. nachfragen)
+2. **Todos setzen** – Arbeit in kleine Schritte zerlegen (`todowrite`)
+3. **Implementieren** – Code schreiben (einzeln, testbar)
+4. **Testen** – `python3 pipeline.py` ausführen, Output prüfen
+5. **Code-Qualität prüfen** – Gegen diese Prinzipien reviewen
+6. **Nochmal testen** – Sicherstellen, dass nichts kaputt ging
+7. **Committen** – Sauberer Commit mit aussagekräftiger Nachricht
