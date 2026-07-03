@@ -96,7 +96,7 @@ def write_csv(transactions: list[dict], out_path: Path) -> None:
         "Betrag (€)", "Gläubiger-ID", "Mandatsreferenz", "Kundenreferenz",
     ]
     with open(out_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=";")
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=";", quoting=csv.QUOTE_ALL)
         writer.writeheader()
         writer.writerows(transactions)
 
