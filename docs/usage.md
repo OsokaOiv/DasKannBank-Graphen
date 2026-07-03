@@ -96,7 +96,7 @@ make app
 
 ## PDF → CSV
 
-Anonymisierte PDF-Kontoauszüge in `pdf/` ablegen, dann:
+DKB-PDF-Kontoauszüge in `pdf/` ablegen, dann:
 
 ```bash
 make pdf2csv

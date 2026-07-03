@@ -12,7 +12,7 @@ help:
 	@echo "  make run-yearly        — Nur Kreisdiagramme pro Jahr"
 	@echo "  make run-monthly       — Nur monatliche Diagramme (Linie + Balken)"
 	@echo "  make run-monthly-pies  — Nur Kreisdiagramme pro Monat"
-	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren (benötigt anonymisierte PDFs)"
+	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren"
 	@echo "  make app               — Streamlit-Dashboard starten (interaktiv)"
 	@echo "  make test              — Tests ausführen (pytest)"
 	@echo "  make clean             — Diagramme, venv und gecachte PDF-Daten löschen"

@@ -18,7 +18,7 @@ Kernregeln:
 .
 ├── .venv/                ← Virtuelle Python-Umgebung (gitignored)
 ├── csv/                  ← DKB-CSV-Exporte (gitignored)
-├── pdf/                  ← Anonymisierte PDFs (gitignored)
+├── pdf/                  ← DKB-PDF-Kontoauszüge (gitignored)
 ├── graphs/               ← Generierte PNG-Diagramme (gitignored)
 ├── docs/                 ← Dokumentation (Markdown)
 ├── tests/
