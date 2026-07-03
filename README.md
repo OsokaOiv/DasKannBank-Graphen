@@ -1,10 +1,3 @@
-<!--
-
-  README – DasKannBank-Graphen
-  Replace <owner> in badge URLs with your GitHub username/org before publishing.
-
--->
-
 <div align="center">
 
 # DasKannBank-Graphen
@@ -12,7 +5,7 @@
 **Ausgabenvisualisierung für DKB-Kontoauszüge**
 
 
-[![CI](https://img.shields.io/github/actions/workflow/status/<owner>/DasKannBank-Graphen/ci.yml?branch=main&label=CI&logo=github)](https://github.com/<owner>/DasKannBank-Graphen/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/OsokaOiv/DasKannBank-Graphen/ci.yml?branch=main&label=CI&logo=github)](https://github.com/OsokaOiv/DasKannBank-Graphen/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10--3.13-blue?logo=python)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](docs/usage.md#windows-befehle-ohne-make)
@@ -21,11 +14,7 @@
 
 <br>
 
-<!--
-  Replace with an actual screenshot once the dashboard is running.
-  Example: streamlit run app.py – then take a screenshot of http://localhost:8501
--->
-<img src="docs/screenshot.svg" alt="Dashboard Screenshot" width="700"/>
+<img src="docs/screenshot.png" alt="Dashboard Screenshot" width="700"/>
 
 <br>
 
@@ -95,7 +84,7 @@ CI runs them on every push across Python 3.10–3.13 on Linux, macOS, and Window
 
 Contributions are welcome.  
 
-1. Open an [issue](https://github.com/<owner>/DasKannBank-Graphen/issues) to discuss changes
+1. Open an [issue](https://github.com/OsokaOiv/DasKannBank-Graphen/issues) to discuss changes
 2. Follow the [code principles](code-principles.md)
 3. Ensure all tests pass: `make test`
 4. Submit a pull request
