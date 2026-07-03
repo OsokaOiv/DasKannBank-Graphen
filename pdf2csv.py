@@ -9,18 +9,9 @@ from pdfplumber import open as open_pdf
 PDF_DIR = Path(__file__).parent / "pdf"
 CSV_DIR = Path(__file__).parent / "csv"
 
-DECIMAL_FIXED = r"\d{1,3}(?:\.\d{3})*(?:,\d{2})"
-DATE_NO_YEAR = r"(\d\d)\.(\d\d)\."
-
-re_range = re.compile(r"Kontoauszug Nummer (\d*) / (\d*) vom (\d\d)\.(\d\d)\.(\d\d\d\d) bis (\d\d)\.(\d\d)\.(\d\d\d\d)")
-re_account = re.compile(r"Kontonummer (\d*) / IBAN ([A-Z0-9 ]*)")
-re_table_header = re.compile(r"(Bu\.Tag)\s+(Wert)\s+(Wir haben für Sie gebucht)")
-
-# flexible transaction: dates separated by spaces, then text, then optional sign + amount
-re_transaction = re.compile(
-    rf"^\s*(\d\d)\.(\d\d)\.\s+(\d\d)\.(\d\d)\.\s+(.+?)\s+([\-+SH])?({DECIMAL_FIXED})\s*$"
-)
-re_detail = re.compile(r"^\s{3,}(.+)$")
+AMOUNT_END = re.compile(r"\s+([\-+])?\s*(\d{1,3}(?:\.\d{3})*(?:,\d{2}))\s*$")
+DATE_START = re.compile(r"^(\d\d)\.(\d\d)\.(\d{4})")
+DETAIL_LINE = re.compile(r"^\s{2,}(.+)$")
 
 
 def extract_text_from_pdf(path: Path) -> str:
@@ -37,52 +28,50 @@ def parse_bank_statement(text: str) -> list[dict]:
     transactions: list[dict] = []
     lines = text.splitlines()
 
-    iban = ""
-    year = ""
-    in_table = False
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            continue
 
-    for line in lines:
-        m = re_range.search(line)
-        if m:
-            year = m.group(2)
+        dm = DATE_START.match(line)
+        if dm:
+            day, month, year = dm.group(1), dm.group(2), dm.group(3)
+            rest = line[dm.end():]
+            am = AMOUNT_END.search(rest)
+            amount = None
+            ttype = rest
 
-        m = re_account.search(line)
-        if m:
-            iban = m.group(2).replace(" ", "")
+            if am:
+                ttype = rest[:am.start()].strip()
+                sign = am.group(1)
+                raw_amount = am.group(2).replace(".", "").replace(",", ".")
+                amount = float(raw_amount)
+                if sign and sign == "-":
+                    amount = -amount
 
-        if re_table_header.search(line):
-            in_table = True
+            if amount is not None:
+                transactions.append({
+                    "Buchungsdatum": f"{day}.{month}.{year[-2:]}",
+                    "Wertstellung": f"{day}.{month}.{year[-2:]}",
+                    "Status": "Gebucht",
+                    "Zahlungspflichtige*r": "",
+                    "Zahlungsempfänger*in": ttype,
+                    "Verwendungszweck": ttype,
+                    "Umsatztyp": "Ausgang" if amount < 0 else "Eingang",
+                    "IBAN": "",
+                    "Betrag (€)": f"{amount:+.2f}".replace(".", ","),
+                    "Gläubiger-ID": "",
+                    "Mandatsreferenz": "",
+                    "Kundenreferenz": "",
+                })
+                continue
 
-        m = re_transaction.match(line)
-        if m and in_table:
-            booked = f"{m.group(1)}{m.group(2)}{year[-2:]}"
-            valued = f"{m.group(3)}{m.group(4)}{year[-2:]}"
-            ttype = m.group(5).strip()
-            sign_raw = m.group(6)
-            raw_amount = m.group(7).replace(".", "").replace(",", ".")
-            amount = float(raw_amount)
-
-            if sign_raw and sign_raw in ["-", "S"]:
-                amount = -amount
-
-            transactions.append({
-                "Buchungsdatum": booked,
-                "Wertstellung": valued,
-                "Status": "Gebucht",
-                "Zahlungspflichtige*r": "",
-                "Zahlungsempfänger*in": ttype,
-                "Verwendungszweck": ttype,
-                "Umsatztyp": "Ausgang" if amount < 0 else "Eingang",
-                "IBAN": iban,
-                "Betrag (€)": f"{amount:+.2f}".replace(".", ","),
-                "Gläubiger-ID": "",
-                "Mandatsreferenz": "",
-                "Kundenreferenz": "",
-            })
-
-        if transactions and re_detail.match(line):
+        if transactions and DETAIL_LINE.match(raw_line):
             last = transactions[-1]
-            last["Verwendungszweck"] += " " + line.strip()
+            detail = line
+            if last["Zahlungsempfänger*in"] == last["Verwendungszweck"]:
+                last["Zahlungsempfänger*in"] = detail
+            last["Verwendungszweck"] += " " + detail
 
     return transactions
 
