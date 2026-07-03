@@ -197,6 +197,25 @@ def prepare_expenses(df: pd.DataFrame, categories: dict) -> pd.DataFrame:
     return expenses
 
 
+def print_uncategorized(expenses: pd.DataFrame) -> None:
+    sonstige = expenses[expenses["Kategorie"] == "Sonstige"]
+    if sonstige.empty:
+        return
+    grouped = sonstige.groupby("Zahlungsempfänger*in").agg(
+        Betrag=("Betrag", "sum"),
+        Anzahl=("Betrag", "count"),
+    ).sort_values("Betrag", ascending=False)
+
+    print("\nNicht kategorisierte Ausgaben (Sonstige)")
+    print("=" * 60)
+    print(f"{'Empfänger':<45} {'Betrag':>8} {'#':>4}")
+    print("-" * 60)
+    for name, row in grouped.iterrows():
+        print(f"{str(name).upper()[:44]:<45} {row['Betrag']:>7.2f} € {int(row['Anzahl']):>3}")
+    print("=" * 60)
+    print("Tipp: Namen oben als keyword in categories.toml eintragen.")
+
+
 def print_all_tables(expenses: pd.DataFrame):
     report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
     print_table(report, "Gesamtausgaben")
@@ -205,6 +224,7 @@ def print_all_tables(expenses: pd.DataFrame):
         yearly = expenses[expenses["Jahr"] == year]
         yr = yearly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
         print_table(yr, f"Ausgaben {year}")
+    print_uncategorized(expenses)
 
 
 def plot_all_charts(expenses: pd.DataFrame):
