@@ -10,7 +10,7 @@ help:
 	@echo "  make run           — Alle Diagramme erstellen"
 	@echo "  make run-total     — Nur Gesamt-Kreisdiagramm"
 	@echo "  make run-yearly    — Nur Kreisdiagramme pro Jahr"
-	@echo "  make run-monthly   — Nur monatliche Diagramme (Balken + Kreis)"
+	@echo "  make run-monthly   — Nur monatliche Diagramme (Linie + Kreis)"
 	@echo "  make clean         — Diagramme und venv löschen"
 
 $(VENV):

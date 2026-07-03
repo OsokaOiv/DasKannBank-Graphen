@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import warnings
 from datetime import datetime
-from matplotlib.patheffects import withStroke
 
 CSV_DIR = Path(__file__).parent / "csv"
 GRAPHS_DIR = Path(__file__).parent / "graphs"
@@ -101,7 +100,7 @@ def plot_pie(report: dict[str, float]) -> None:
     )
 
 
-def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
+def plot_monthly_lines(monthly: pd.DataFrame) -> None:
 
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
@@ -110,28 +109,16 @@ def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
 
     fig, ax = plt.subplots(figsize=(14, 7))
     categories_in_data = pivot.columns.tolist()
-    bottom = None
-    bar_width = 20
 
     for cat in categories_in_data:
         vals = pivot[cat].values
-        if bottom is None:
-            bars = ax.bar(pivot.index, vals, width=bar_width, label=cat)
-            bottom = vals.copy()
-        else:
-            bars = ax.bar(pivot.index, vals, width=bar_width, bottom=bottom, label=cat)
-            bottom = bottom + vals
-
-        for bar, v in zip(bars, vals):
+        ax.plot(
+            pivot.index, vals,
+            marker="o", label=cat, linewidth=2,
+        )
+        for x, v in zip(pivot.index, vals):
             if v > 0:
-                ax.text(
-                    bar.get_x() + bar.get_width() / 2,
-                    bar.get_y() + bar.get_height() / 2,
-                    f"{v:.2f}",
-                    ha="center", va="center",
-                    fontsize=8, fontweight="bold", color="white",
-                    path_effects=[withStroke(linewidth=2, foreground="black")],
-                )
+                ax.text(x, v, f"{v:.2f}", fontsize=8, ha="center", va="bottom")
 
     ax.set_title("Ausgaben pro Monat nach Kategorie", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
@@ -139,7 +126,9 @@ def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
     ax.legend(title="Kategorie", bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.yaxis.set_major_formatter("{x:.0f} €")
     plt.xticks(rotation=45, ha="right")
+    ax.set_ylim(bottom=0)
     fig.tight_layout()
 
     out_path = GRAPHS_DIR / "ausgaben_pro_monat.png"
@@ -251,7 +240,7 @@ def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
         report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
         plot_pie(report)
     if "monthly" in charts:
-        plot_monthly_stacked(expenses)
+        plot_monthly_lines(expenses)
         plot_monthly_pies(expenses)
     if "yearly" in charts:
         plot_yearly_pies(expenses)
