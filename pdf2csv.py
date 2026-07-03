@@ -11,7 +11,7 @@ CSV_DIR = Path(__file__).parent / "csv"
 
 AMOUNT_END = re.compile(r"\s+([\-+])?\s*(\d{1,3}(?:\.\d{3})*(?:,\d{2}))\s*$")
 DATE_START = re.compile(r"^(\d\d)\.(\d\d)\.(\d{4})")
-DETAIL_LINE = re.compile(r"^\s{2,}(.+)$")
+LINE_DATE = re.compile(r"^\s*(\d\d)\.(\d\d)\.(\d{4})")
 
 
 def extract_text_from_pdf(path: Path) -> str:
@@ -26,52 +26,52 @@ def extract_text_from_pdf(path: Path) -> str:
 
 def parse_bank_statement(text: str) -> list[dict]:
     transactions: list[dict] = []
-    lines = text.splitlines()
+    in_transaction = False
 
-    for raw_line in lines:
+    for raw_line in text.splitlines():
         line = raw_line.strip()
         if not line:
             continue
 
-        dm = DATE_START.match(line)
-        if dm:
+        has_date = LINE_DATE.match(raw_line)
+        if has_date:
+            dm = DATE_START.match(line)
+            if not dm:
+                continue
             day, month, year = dm.group(1), dm.group(2), dm.group(3)
             rest = line[dm.end():]
             am = AMOUNT_END.search(rest)
-            amount = None
-            ttype = rest
-
-            if am:
-                ttype = rest[:am.start()].strip()
-                sign = am.group(1)
-                raw_amount = am.group(2).replace(".", "").replace(",", ".")
-                amount = float(raw_amount)
-                if sign and sign == "-":
-                    amount = -amount
-
-            if amount is not None:
-                transactions.append({
-                    "Buchungsdatum": f"{day}.{month}.{year[-2:]}",
-                    "Wertstellung": f"{day}.{month}.{year[-2:]}",
-                    "Status": "Gebucht",
-                    "Zahlungspflichtige*r": "",
-                    "Zahlungsempfänger*in": ttype,
-                    "Verwendungszweck": ttype,
-                    "Umsatztyp": "Ausgang" if amount < 0 else "Eingang",
-                    "IBAN": "",
-                    "Betrag (€)": f"{amount:+.2f}".replace(".", ","),
-                    "Gläubiger-ID": "",
-                    "Mandatsreferenz": "",
-                    "Kundenreferenz": "",
-                })
+            if not am:
                 continue
+            ttype = rest[:am.start()].strip()
+            sign = am.group(1)
+            raw_amount = am.group(2).replace(".", "").replace(",", ".")
+            amount = float(raw_amount)
+            if sign and sign == "-":
+                amount = -amount
 
-        if transactions and DETAIL_LINE.match(raw_line):
+            transactions.append({
+                "Buchungsdatum": f"{day}.{month}.{year[-2:]}",
+                "Wertstellung": f"{day}.{month}.{year[-2:]}",
+                "Status": "Gebucht",
+                "Zahlungspflichtige*r": "",
+                "Zahlungsempfänger*in": ttype,
+                "Verwendungszweck": ttype,
+                "Umsatztyp": "Ausgang" if amount < 0 else "Eingang",
+                "IBAN": "",
+                "Betrag (€)": f"{amount:+.2f}".replace(".", ","),
+                "Gläubiger-ID": "",
+                "Mandatsreferenz": "",
+                "Kundenreferenz": "",
+            })
+            in_transaction = True
+            continue
+
+        if in_transaction and transactions:
             last = transactions[-1]
-            detail = line
             if last["Zahlungsempfänger*in"] == last["Verwendungszweck"]:
-                last["Zahlungsempfänger*in"] = detail
-            last["Verwendungszweck"] += " " + detail
+                last["Zahlungsempfänger*in"] = line
+            last["Verwendungszweck"] += " " + line
 
     return transactions
 
