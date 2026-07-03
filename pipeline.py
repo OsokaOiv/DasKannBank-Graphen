@@ -64,7 +64,7 @@ def load_transactions() -> pd.DataFrame:
 
 
 def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.Series:
-    def categorize(row):
+    def categorize(row: pd.Series) -> str:
         text = f"{str(row.get('Zahlungsempfänger*in', '')).upper()} {str(row.get('Verwendungszweck', '')).upper()}"
         for cat, keywords in categories.items():
             for kw in keywords:
@@ -75,7 +75,7 @@ def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.
     return df.apply(categorize, axis=1)
 
 
-def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename: str):
+def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename: str) -> None:
     total = sum(values)
     fig, ax = plt.subplots(figsize=(10, 7))
     wedges, texts, autotexts = ax.pie(
@@ -91,7 +91,7 @@ def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename
     print(f"Diagramm gespeichert: {out_path}")
 
 
-def plot_pie(report: dict[str, float]):
+def plot_pie(report: dict[str, float]) -> None:
     _plot_pie_chart(
         labels=list(report.keys()),
         values=list(report.values()),
@@ -100,7 +100,7 @@ def plot_pie(report: dict[str, float]):
     )
 
 
-def plot_monthly_stacked(monthly: pd.DataFrame):
+def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
 
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
@@ -147,7 +147,7 @@ def plot_monthly_stacked(monthly: pd.DataFrame):
     print(f"Diagramm gespeichert: {out_path}")
 
 
-def plot_yearly_pies(expenses: pd.DataFrame):
+def plot_yearly_pies(expenses: pd.DataFrame) -> None:
     for year in sorted(expenses["Jahr"].unique()):
         yearly = expenses[expenses["Jahr"] == year]
         report = yearly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False)
@@ -161,7 +161,7 @@ def plot_yearly_pies(expenses: pd.DataFrame):
         )
 
 
-def print_table(report: dict[str, float], title: str = ""):
+def print_table(report: dict[str, float], title: str = "") -> None:
     total = sum(report.values())
     if title:
         print(f"\n{title}")
@@ -175,7 +175,7 @@ def print_table(report: dict[str, float], title: str = ""):
     print(f"{'Gesamt':<25} {total:>10.2f} €  {'100.0 %':>8}")
 
 
-def print_monthly_table(monthly: pd.DataFrame):
+def print_monthly_table(monthly: pd.DataFrame) -> None:
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
     )
@@ -189,7 +189,7 @@ def print_monthly_table(monthly: pd.DataFrame):
     print("=" * 60)
 
 
-def prepare_expenses(df: pd.DataFrame, categories: dict) -> pd.DataFrame:
+def prepare_expenses(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame:
     expenses = df[df["Betrag"] < 0].copy()
     expenses["Betrag"] = expenses["Betrag"].abs()
     expenses = expenses.dropna(subset=["Datum"])
@@ -203,22 +203,24 @@ def print_uncategorized(expenses: pd.DataFrame) -> None:
     sonstige = expenses[expenses["Kategorie"] == "Sonstige"]
     if sonstige.empty:
         return
-    grouped = sonstige.groupby("Zahlungsempfänger*in").agg(
+    grouped = sonstige.groupby(["Zahlungsempfänger*in", "Verwendungszweck"], as_index=False).agg(
         Betrag=("Betrag", "sum"),
         Anzahl=("Betrag", "count"),
     ).sort_values("Betrag", ascending=False)
 
     print("\nNicht kategorisierte Ausgaben (Sonstige)")
-    print("=" * 60)
-    print(f"{'Empfänger':<45} {'Betrag':>8} {'#':>4}")
-    print("-" * 60)
-    for name, row in grouped.iterrows():
-        print(f"{str(name).upper()[:44]:<45} {row['Betrag']:>7.2f} € {int(row['Anzahl']):>3}")
-    print("=" * 60)
-    print("Tipp: Namen oben als keyword in categories.toml eintragen.")
+    print("=" * 100)
+    print(f"{'Empfänger':<40} {'Verwendungszweck':<40} {'Betrag':>8} {'#':>4}")
+    print("-" * 100)
+    for _, row in grouped.iterrows():
+        empfaenger = str(row["Zahlungsempfänger*in"])[:39]
+        zweck = str(row["Verwendungszweck"])[:39]
+        print(f"{empfaenger:<40} {zweck:<40} {row['Betrag']:>7.2f} € {int(row['Anzahl']):>3}")
+    print("=" * 100)
+    print("Tipp: Namen oder Zweck oben als keyword in categories.toml eintragen.")
 
 
-def print_all_tables(expenses: pd.DataFrame):
+def print_all_tables(expenses: pd.DataFrame) -> None:
     report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
     print_table(report, "Gesamtausgaben")
     print_monthly_table(expenses)
@@ -229,14 +231,14 @@ def print_all_tables(expenses: pd.DataFrame):
     print_uncategorized(expenses)
 
 
-def plot_all_charts(expenses: pd.DataFrame):
+def plot_all_charts(expenses: pd.DataFrame) -> None:
     report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
     plot_pie(report)
     plot_monthly_stacked(expenses)
     plot_yearly_pies(expenses)
 
 
-def main():
+def main() -> None:
     GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
 
     categories = load_categories(CATEGORIES_FILE)
