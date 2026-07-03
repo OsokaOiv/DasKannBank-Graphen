@@ -33,7 +33,8 @@ Die Pipeline:
 4. Zeigt eine Gesamt-Tabelle + monatliche Aufschlüsselung
 5. Erzeugt Diagramme in `graphs/`:
    - `ausgaben_nach_kategorie.png` – Kreisdiagramm (Gesamt)
-   - `ausgaben_pro_monat.png` – Liniendiagramm (monatlicher Verlauf pro Kategorie)
+   - `ausgaben_linien_pro_monat.png` – Liniendiagramm (monatlicher Verlauf pro Kategorie)
+   - `ausgaben_gestapelt_pro_monat.png` – Gestapeltes Balkendiagramm (monatlich)
    - `ausgaben_YYYY.png` – Kreisdiagramm pro Jahr
    - `ausgaben_YYYY-MM.png` – Kreisdiagramm pro Monat
 

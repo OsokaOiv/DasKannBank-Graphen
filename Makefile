@@ -10,7 +10,7 @@ help:
 	@echo "  make run               — Alle Diagramme erstellen"
 	@echo "  make run-total         — Nur Gesamt-Kreisdiagramm"
 	@echo "  make run-yearly        — Nur Kreisdiagramme pro Jahr"
-	@echo "  make run-monthly       — Nur Liniendiagramm (monatlicher Verlauf)"
+	@echo "  make run-monthly       — Nur monatliche Diagramme (Linie + Balken)"
 	@echo "  make run-monthly-pies  — Nur Kreisdiagramme pro Monat"
 	@echo "  make clean             — Diagramme und venv löschen"
 

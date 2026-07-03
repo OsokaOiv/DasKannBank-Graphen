@@ -100,6 +100,42 @@ def plot_pie(report: dict[str, float]) -> None:
     )
 
 
+def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
+
+    pivot = monthly.pivot_table(
+        index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
+    )
+    pivot = pivot.sort_index()
+
+    fig, ax = plt.subplots(figsize=(14, 7))
+    categories_in_data = pivot.columns.tolist()
+    bottom = None
+    bar_width = 20
+
+    for cat in categories_in_data:
+        vals = pivot[cat].values
+        if bottom is None:
+            bars = ax.bar(pivot.index, vals, width=bar_width, label=cat)
+            bottom = vals.copy()
+        else:
+            bars = ax.bar(pivot.index, vals, width=bar_width, bottom=bottom, label=cat)
+            bottom = bottom + vals
+
+    ax.set_title("Ausgaben pro Monat nach Kategorie", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Betrag (€)")
+    ax.set_xlabel("Monat")
+    ax.legend(title="Kategorie", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    plt.xticks(rotation=45, ha="right")
+    fig.tight_layout()
+
+    out_path = GRAPHS_DIR / "ausgaben_gestapelt_pro_monat.png"
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Diagramm gespeichert: {out_path}")
+
+
 def plot_monthly_lines(monthly: pd.DataFrame) -> None:
 
     pivot = monthly.pivot_table(
@@ -131,7 +167,7 @@ def plot_monthly_lines(monthly: pd.DataFrame) -> None:
     ax.set_ylim(bottom=0)
     fig.tight_layout()
 
-    out_path = GRAPHS_DIR / "ausgaben_pro_monat.png"
+    out_path = GRAPHS_DIR / "ausgaben_linien_pro_monat.png"
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Diagramm gespeichert: {out_path}")
@@ -241,6 +277,7 @@ def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
         plot_pie(report)
     if "monthly" in charts:
         plot_monthly_lines(expenses)
+        plot_monthly_stacked(expenses)
     if "monthly-pies" in charts:
         plot_monthly_pies(expenses)
     if "yearly" in charts:
