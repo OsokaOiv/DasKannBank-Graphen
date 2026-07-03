@@ -1,0 +1,95 @@
+[Lebensmittel]
+keywords = [
+    "REWE",
+    "Lidl",
+    "EDEKA",
+    "ALDI",
+    "NETTO",
+    "PENNY",
+    "D M",
+    "DM-",
+    "DM ",
+    "Rossmann",
+]
+
+["Essen & Trinken"]
+keywords = [
+    "RESTAURANT",
+    "CAFE",
+    "CAFÉ",
+    "BAECKEREI",
+    "BÄCKEREI",
+    "MCDONALD",
+    "BURGER KING",
+    "LIEFERANDO",
+    "WOLT",
+]
+
+[Verkehr]
+keywords = [
+    "DB ",
+    "DEUTSCHE BAHN",
+    "MVG",
+    "TANKEN",
+    "ARAL",
+    "SHELL",
+    "ESSO",
+    "TAXI",
+    "UBER",
+    "RAD",
+]
+
+[Shopping]
+keywords = [
+    "AMAZON",
+    "EBAY",
+    "ZALANDO",
+    "H&M",
+    "DECATHLON",
+    "MEDIA MARKT",
+    "SATURN",
+    "OTTO",
+]
+
+[Abos]
+keywords = [
+    "NETFLIX",
+    "SPOTIFY",
+    "AMAZON PRIME",
+    "YOUTUBE PREMIUM",
+    "DISNEY",
+    "MICROSOFT",
+    "I CLOUD",
+    "ICLOUD",
+    "APPLE",
+]
+
+[Wohnen]
+keywords = [
+    "MIETE",
+    "WOHNUNG",
+    "STADTWERKE",
+    "STROM",
+    "HEIZUNG",
+    "NEBENKOSTEN",
+    "HAUSGELD",
+]
+
+[Versicherungen]
+keywords = [
+    "VERSICHERUNG",
+    "HUK",
+    "ALLIANZ",
+    "AXA",
+    "TK ",
+    "TECHNIKER KRANKENKASSE",
+    "AOK",
+    "KKH",
+]
+
+[Gehalt]
+keywords = [
+    "GEHALT",
+    "LOHN",
+    "ARBEITGEBER",
+]
