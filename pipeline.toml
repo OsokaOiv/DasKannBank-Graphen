@@ -1,0 +1,16 @@
+[display]
+dpi = 150
+font_family = "DejaVu Sans"
+
+[charts.pie]
+figure_width = 10
+figure_height = 7
+
+[charts.monthly_bar]
+figure_width = 14
+figure_height = 7
+bar_width_days = 20
+
+[charts.monthly_line]
+figure_width = 14
+figure_height = 7

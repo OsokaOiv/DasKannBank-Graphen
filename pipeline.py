@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 from pathlib import Path
 import tomllib
 import pandas as pd
@@ -10,8 +11,27 @@ from datetime import datetime
 CSV_DIR = Path(__file__).parent / "csv"
 GRAPHS_DIR = Path(__file__).parent / "graphs"
 CATEGORIES_FILE = Path(__file__).parent / "categories.toml"
+CONFIG_FILE = Path(__file__).parent / "pipeline.toml"
 
-plt.rcParams["font.family"] = "DejaVu Sans"
+
+def load_config() -> dict:
+    defaults = {
+        "display": {"dpi": 150, "font_family": "DejaVu Sans"},
+        "charts": {
+            "pie": {"figure_width": 10, "figure_height": 7},
+            "monthly_bar": {"figure_width": 14, "figure_height": 7, "bar_width_days": 20},
+            "monthly_line": {"figure_width": 14, "figure_height": 7},
+        },
+    }
+    if CONFIG_FILE.exists():
+        with open(CONFIG_FILE, "rb") as f:
+            user = tomllib.load(f)
+        for section, values in user.items():
+            if section in defaults:
+                defaults[section].update(values)
+            else:
+                defaults[section] = values
+    return defaults
 
 
 def load_categories(path: Path) -> dict[str, list[str]]:
@@ -20,9 +40,12 @@ def load_categories(path: Path) -> dict[str, list[str]]:
     return {name: [k.upper() for k in entry["keywords"]] for name, entry in data.items()}
 
 
-def parse_amount(raw: str) -> float:
+def parse_amount(raw: str) -> float | None:
     raw = raw.strip().replace(".", "").replace(",", ".")
-    return float(raw) if raw else 0.0
+    try:
+        return float(raw)
+    except ValueError:
+        return None
 
 
 def parse_date(raw: str) -> datetime | None:
@@ -30,6 +53,11 @@ def parse_date(raw: str) -> datetime | None:
         return datetime.strptime(raw.strip(), "%d.%m.%y")
     except (ValueError, AttributeError):
         return None
+
+
+def transaction_hash(row: pd.Series) -> str:
+    raw = f"{row['Buchungsdatum']}|{row['Betrag (€)']}|{row.get('Zahlungsempfänger*in', '')}|{row.get('Verwendungszweck', '')}"
+    return hashlib.sha256(raw.encode()).hexdigest()
 
 
 def load_transactions() -> pd.DataFrame:
@@ -45,6 +73,7 @@ def load_transactions() -> pd.DataFrame:
                 break
 
         if header_idx is None:
+            warnings.warn(f"{csv_path.name}: Keine Spaltenüberschrift gefunden, überspringe")
             continue
 
         df = pd.read_csv(
@@ -52,18 +81,40 @@ def load_transactions() -> pd.DataFrame:
             delimiter=";",
             dtype=str,
         )
+
+        invalid = df["Betrag (€)"].apply(parse_amount).isna()
+        if invalid.any():
+            warnings.warn(f"{csv_path.name}: {invalid.sum()} Zeile(n) mit ungültigem Betrag übersprungen")
+            df = df[~invalid]
+
         rows.append(df)
 
     if not rows:
         return pd.DataFrame()
 
     df = pd.concat(rows, ignore_index=True)
+    n_before = len(df)
+
+    df["_hash"] = df.apply(transaction_hash, axis=1)
+    dups = df.duplicated(subset="_hash", keep="first")
+    if dups.any():
+        warnings.warn(f"{dups.sum()} Dubletten entfernt")
+        df = df[~dups]
+    df = df.drop(columns=["_hash"])
+
     df["Betrag"] = df["Betrag (€)"].apply(parse_amount)
     df["Datum"] = df["Buchungsdatum"].apply(parse_date)
+
+    no_date = df["Datum"].isna()
+    if no_date.any():
+        warnings.warn(f"{no_date.sum()} Zeile(n) mit ungültigem Datum übersprungen")
+        df = df[~no_date]
+
     return df
 
 
 def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.Series:
+    categories = {cat: [k.upper() for k in kw] for cat, kw in categories.items()}
     def categorize(row: pd.Series) -> str:
         text = f"{str(row.get('Zahlungsempfänger*in', '')).upper()} {str(row.get('Verwendungszweck', '')).upper()}"
         for cat, keywords in categories.items():
@@ -75,9 +126,10 @@ def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.
     return df.apply(categorize, axis=1)
 
 
-def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename: str) -> None:
+def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename: str, cfg: dict) -> None:
+    pc = cfg["charts"]["pie"]
     total = sum(values)
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(pc["figure_width"], pc["figure_height"]))
     wedges, texts, autotexts = ax.pie(
         values, labels=None, autopct="", startangle=90, textprops={"fontsize": 9},
     )
@@ -86,39 +138,39 @@ def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename
     ax.legend(wedges, legend_labels, title="Kategorien", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
     plt.tight_layout()
     out_path = GRAPHS_DIR / filename
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
     plt.close(fig)
     print(f"Diagramm gespeichert: {out_path}")
 
 
-def plot_pie(report: dict[str, float]) -> None:
+def plot_pie(report: dict[str, float], cfg: dict) -> None:
     _plot_pie_chart(
         labels=list(report.keys()),
         values=list(report.values()),
         title=f"Ausgaben nach Kategorie (Gesamt: {sum(report.values()):.2f} €)",
         filename="ausgaben_nach_kategorie.png",
+        cfg=cfg,
     )
 
 
-def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
-
+def plot_monthly_stacked(monthly: pd.DataFrame, cfg: dict) -> None:
+    bc = cfg["charts"]["monthly_bar"]
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
     )
     pivot = pivot.sort_index()
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
     categories_in_data = pivot.columns.tolist()
     bottom = None
-    bar_width = 20
 
     for cat in categories_in_data:
         vals = pivot[cat].values
         if bottom is None:
-            bars = ax.bar(pivot.index, vals, width=bar_width, label=cat)
+            bars = ax.bar(pivot.index, vals, width=bc["bar_width_days"], label=cat)
             bottom = vals.copy()
         else:
-            bars = ax.bar(pivot.index, vals, width=bar_width, bottom=bottom, label=cat)
+            bars = ax.bar(pivot.index, vals, width=bc["bar_width_days"], bottom=bottom, label=cat)
             bottom = bottom + vals
 
     ax.set_title("Ausgaben pro Monat nach Kategorie", fontsize=14, fontweight="bold")
@@ -131,27 +183,24 @@ def plot_monthly_stacked(monthly: pd.DataFrame) -> None:
     fig.tight_layout()
 
     out_path = GRAPHS_DIR / "ausgaben_gestapelt_pro_monat.png"
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
     plt.close(fig)
     print(f"Diagramm gespeichert: {out_path}")
 
 
-def plot_monthly_lines(monthly: pd.DataFrame) -> None:
-
+def plot_monthly_lines(monthly: pd.DataFrame, cfg: dict) -> None:
+    lc = cfg["charts"]["monthly_line"]
     pivot = monthly.pivot_table(
         index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
     )
     pivot = pivot.sort_index()
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(lc["figure_width"], lc["figure_height"]))
     categories_in_data = pivot.columns.tolist()
 
     for cat in categories_in_data:
         vals = pivot[cat].values
-        ax.plot(
-            pivot.index, vals,
-            marker="o", label=cat, linewidth=2,
-        )
+        ax.plot(pivot.index, vals, marker="o", label=cat, linewidth=2)
         for x, v in zip(pivot.index, vals):
             if v > 0:
                 ax.text(x, v, f"{v:.2f}", fontsize=8, ha="center", va="bottom")
@@ -168,12 +217,12 @@ def plot_monthly_lines(monthly: pd.DataFrame) -> None:
     fig.tight_layout()
 
     out_path = GRAPHS_DIR / "ausgaben_linien_pro_monat.png"
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
     plt.close(fig)
     print(f"Diagramm gespeichert: {out_path}")
 
 
-def plot_yearly_pies(expenses: pd.DataFrame) -> None:
+def plot_yearly_pies(expenses: pd.DataFrame, cfg: dict) -> None:
     for year in sorted(expenses["Jahr"].unique()):
         yearly = expenses[expenses["Jahr"] == year]
         report = yearly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False)
@@ -184,10 +233,11 @@ def plot_yearly_pies(expenses: pd.DataFrame) -> None:
             values=report.values.tolist(),
             title=f"Ausgaben {year} (Gesamt: {report.sum():.2f} €)",
             filename=f"ausgaben_{year}.png",
+            cfg=cfg,
         )
 
 
-def plot_monthly_pies(expenses: pd.DataFrame) -> None:
+def plot_monthly_pies(expenses: pd.DataFrame, cfg: dict) -> None:
     for month in sorted(expenses["Monat"].unique()):
         monthly = expenses[expenses["Monat"] == month]
         report = monthly.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False)
@@ -198,6 +248,7 @@ def plot_monthly_pies(expenses: pd.DataFrame) -> None:
             values=report.values.tolist(),
             title=f"Ausgaben {month.strftime('%b %Y')} (Gesamt: {report.sum():.2f} €)",
             filename=f"ausgaben_{month.strftime('%Y-%m')}.png",
+            cfg=cfg,
         )
 
 
@@ -232,7 +283,6 @@ def print_monthly_table(monthly: pd.DataFrame) -> None:
 def prepare_expenses(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame:
     expenses = df[df["Betrag"] < 0].copy()
     expenses["Betrag"] = expenses["Betrag"].abs()
-    expenses = expenses.dropna(subset=["Datum"])
     expenses["Kategorie"] = assign_categories(expenses, categories)
     expenses["Monat"] = expenses["Datum"].dt.to_period("M").dt.to_timestamp()
     expenses["Jahr"] = expenses["Datum"].dt.year
@@ -271,17 +321,17 @@ def print_all_tables(expenses: pd.DataFrame) -> None:
     print_uncategorized(expenses)
 
 
-def plot_all_charts(expenses: pd.DataFrame, charts: set[str]) -> None:
+def plot_all_charts(expenses: pd.DataFrame, charts: set[str], cfg: dict) -> None:
     if "total" in charts:
         report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
-        plot_pie(report)
+        plot_pie(report, cfg)
     if "monthly" in charts:
-        plot_monthly_lines(expenses)
-        plot_monthly_stacked(expenses)
+        plot_monthly_lines(expenses, cfg)
+        plot_monthly_stacked(expenses, cfg)
     if "monthly-pies" in charts:
-        plot_monthly_pies(expenses)
+        plot_monthly_pies(expenses, cfg)
     if "yearly" in charts:
-        plot_yearly_pies(expenses)
+        plot_yearly_pies(expenses, cfg)
 
 
 def main() -> None:
@@ -300,6 +350,9 @@ def main() -> None:
         "monthly-pies": {"monthly-pies"},
     }
 
+    cfg = load_config()
+    plt.rcParams["font.family"] = cfg["display"]["font_family"]
+
     GRAPHS_DIR.mkdir(parents=True, exist_ok=True)
 
     categories = load_categories(CATEGORIES_FILE)
@@ -311,7 +364,7 @@ def main() -> None:
 
     expenses = prepare_expenses(df, categories)
     print_all_tables(expenses)
-    plot_all_charts(expenses, chart_map[args.charts])
+    plot_all_charts(expenses, chart_map[args.charts], cfg)
 
 
 if __name__ == "__main__":

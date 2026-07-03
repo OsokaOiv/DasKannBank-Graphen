@@ -2,7 +2,7 @@ VENV = .venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 
-.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies pdf2csv clean
+.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies pdf2csv test clean
 
 help:
 	@echo "Verfügbare Befehle:"
@@ -13,13 +13,14 @@ help:
 	@echo "  make run-monthly       — Nur monatliche Diagramme (Linie + Balken)"
 	@echo "  make run-monthly-pies  — Nur Kreisdiagramme pro Monat"
 	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren (benötigt anonymisierte PDFs)"
+	@echo "  make test              — Tests ausführen (pytest)"
 	@echo "  make clean             — Diagramme, venv und gecachte PDF-Daten löschen"
 
 $(VENV):
 	python3 -m venv $(VENV)
 
 install: $(VENV)
-	$(PIP) install matplotlib pandas pdfplumber
+	$(PIP) install matplotlib pandas pdfplumber pytest
 
 run: $(VENV)
 	$(PYTHON) pipeline.py
@@ -35,6 +36,9 @@ run-monthly: $(VENV)
 
 run-monthly-pies: $(VENV)
 	$(PYTHON) pipeline.py monthly-pies
+
+test: $(VENV)
+	$(PYTHON) -m pytest tests/ -v
 
 pdf2csv: $(VENV)
 	$(PYTHON) pdf2csv.py

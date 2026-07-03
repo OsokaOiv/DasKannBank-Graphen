@@ -33,13 +33,19 @@ Alles, was sich ändern kann (Kategorie-Keywords, Schwellwerte, Format-Einstellu
 ## if __name__ == "__main__"
 Das Hauptprogramm hat nur minimale Logik (Konstanten setzen, `main()` aufrufen). Die eigentliche Arbeit delegiert `main()` an spezialisierte Funktionen.
 
+## Tests
+Unit-Tests in `tests/` decken die Kernlogik ab (`parse_amount`, `parse_date`, `categorize`, `transaction_hash`). Änderungen an diesen Funktionen müssen die bestehenden Tests grün halten. Tests ausführen mit:
+```bash
+make test
+```
+
 ## Pipeline-Workflow
 Jede Änderung durchläuft diesen Zyklus:
 1. **Planen** – Was ist das Ziel? (User-Frage verstehen, ggf. nachfragen)
 2. **Todos setzen** – Arbeit in kleine Schritte zerlegen (`todowrite`)
 3. **Implementieren** – Code schreiben (einzeln, testbar)
-4. **Testen** – `python3 pipeline.py` ausführen, Output prüfen
+4. **Testen** – `python3 pipeline.py` ausführen, Output prüfen; `make test` für Unit-Tests
 5. **Dokumentation aktualisieren** – README, Makefile-Help, code-principles.md bei Bedarf anpassen
-6. **Code-Qualität prüfen** – Gegen diese Prinzipien reviewen
+6. **Code-Qualität prüfen** – Gegen diese Prinzipien reviewen (Dead Code, Typannotationen, …)
 7. **Nochmal testen** – Sicherstellen, dass nichts kaputt ging
 8. **Committen** – Sauberer Commit mit aussagekräftiger Nachricht
