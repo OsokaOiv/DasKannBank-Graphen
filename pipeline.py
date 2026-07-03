@@ -1,7 +1,10 @@
 import argparse
 import hashlib
 from pathlib import Path
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib  # Python < 3.11
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
