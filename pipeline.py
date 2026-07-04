@@ -323,6 +323,28 @@ def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
     print(f"Diagramm gespeichert: {out_path}")
 
 
+def plot_income_pie(income: pd.DataFrame, cfg: dict) -> None:
+    if income.empty:
+        return
+    pc = cfg["charts"]["pie"]
+    report = income.groupby(COL_SENDER)["Betrag"].sum().sort_values(ascending=False)
+    total = report.sum()
+    fig, ax = plt.subplots(figsize=(pc["figure_width"], pc["figure_height"]))
+    wedges, texts, autotexts = ax.pie(
+        report.values,
+        labels=report.index,
+        autopct="%1.1f%%",
+        startangle=140,
+        textprops={"fontsize": pc.get("font_size", 10)},
+    )
+    ax.set_title(f"Einnahmen nach Sender (Gesamt: {total:.2f} €)", fontsize=14, fontweight="bold")
+    fig.tight_layout()
+    out_path = GRAPHS_DIR / "einnahmen_kreis.png"
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
+    plt.close(fig)
+    print(f"Diagramm gespeichert: {out_path}")
+
+
 def plot_profit_loss(profit_loss: pd.DataFrame, cfg: dict) -> None:
     if profit_loss.empty:
         return
@@ -453,6 +475,9 @@ def plot_all_charts(expenses: pd.DataFrame, income: pd.DataFrame, profit_loss: p
     if "income" in charts:
         plot_income_monthly(income, cfg)
         plot_income_yearly(income, cfg)
+        plot_income_pie(income, cfg)
+    if "income-pie" in charts:
+        plot_income_pie(income, cfg)
     if "profit" in charts:
         plot_profit_loss(profit_loss, cfg)
 
@@ -460,7 +485,7 @@ def plot_all_charts(expenses: pd.DataFrame, income: pd.DataFrame, profit_loss: p
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ausgaben-Pipeline für DKB-Kontoauszüge")
     parser.add_argument(
-        "charts", nargs="?", choices=["all", "total", "yearly", "monthly", "monthly-pies", "income", "profit"], default="all",
+        "charts", nargs="?", choices=["all", "total", "yearly", "monthly", "monthly-pies", "income", "income-pie", "profit"], default="all",
         help="Welche Diagramme erstellt werden sollen (default: all)",
     )
     args = parser.parse_args()
@@ -472,6 +497,7 @@ def main() -> None:
         "monthly": {"monthly"},
         "monthly-pies": {"monthly-pies"},
         "income": {"income"},
+        "income-pie": {"income-pie"},
         "profit": {"profit"},
     }
 

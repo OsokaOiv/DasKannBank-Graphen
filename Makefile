@@ -2,7 +2,7 @@ VENV = .venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 
-.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies run-income run-profit pdf2csv test clean app
+.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies run-income run-income-pie run-profit pdf2csv test clean app
 
 help:
 	@echo "Verfügbare Befehle:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make run-monthly       — Nur monatliche Diagramme (Linie + Balken)"
 	@echo "  make run-monthly-pies  — Nur Kreisdiagramme pro Monat"
 	@echo "  make run-income        — Nur Einnahmen-Diagramme"
+	@echo "  make run-income-pie    — Nur Einnahmen-Kreisdiagramm"
 	@echo "  make run-profit        — Nur Gewinn/Verlust-Diagramm"
 	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren"
 	@echo "  make app               — Streamlit-Dashboard starten (interaktiv)"
@@ -42,6 +43,9 @@ run-monthly-pies: $(VENV)
 
 run-income: $(VENV)
 	$(PYTHON) pipeline.py income
+
+run-income-pie: $(VENV)
+	$(PYTHON) pipeline.py income-pie
 
 run-profit: $(VENV)
 	$(PYTHON) pipeline.py profit

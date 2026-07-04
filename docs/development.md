@@ -22,8 +22,8 @@ Kernregeln:
 ├── graphs/               ← Generierte PNG-Diagramme (gitignored)
 ├── docs/                 ← Dokumentation (Markdown)
 ├── tests/
-│   ├── test_pipeline.py  ← 15 Tests
-│   └── test_app.py       ← 4 Tests
+│   ├── test_pipeline.py  ← 22 Tests
+│   └── test_app.py       ← 7 Tests
 ├── app.py                ← Streamlit-Dashboard
 ├── pipeline.py           ← CLI-Backend (Daten + matplotlib)
 ├── pdf2csv.py            ← PDF-Konverter
@@ -64,8 +64,8 @@ python3 -m pytest tests/test_pipeline.py::test_parse_amount_german_negative -v  
 
 | Modul | Tests | Getestete Funktionen |
 |---|---|---|
-| `test_pipeline.py` | 15 | `parse_amount`, `parse_date`, `assign_categories`, `transaction_hash`, `load_config` |
-| `test_app.py` | 4 | `filter_expenses` |
+| `test_pipeline.py` | 22 | `parse_amount`, `parse_date`, `assign_categories`, `transaction_hash`, `load_config`, `prepare_income`, `prepare_profit_loss` |
+| `test_app.py` | 7 | `filter_expenses`, `filter_income` |
 
 ### Neue Tests schreiben
 

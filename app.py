@@ -199,6 +199,7 @@ def render_sidebar(expenses: pd.DataFrame) -> tuple:
             "Einnahmen (Balken)",
             "Einnahmen (Linie)",
             "Einnahmen (Jahr)",
+            "Einnahmen (Kreis)",
             "Gewinn/Verlust (Monat)",
         ],
     )
@@ -206,13 +207,19 @@ def render_sidebar(expenses: pd.DataFrame) -> tuple:
     return chart_type, selected_months, selected_categories
 
 
-def render_summary(expenses_filtered: pd.DataFrame) -> None:
+def render_summary(expenses_filtered: pd.DataFrame, income_total: float) -> None:
+    if expenses_filtered.empty:
+        col1, col2 = st.columns(2)
+        col1.warning("Keine Ausgaben für die ausgewählten Filter.")
+        col2.metric("Einnahmen Gesamt", f"{income_total:.2f} €")
+        return
     total = expenses_filtered["Betrag"].sum()
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Ausgaben gesamt", f"{total:.2f} €")
-    col2.metric("Anzahl Transaktionen", len(expenses_filtered))
-    col3.metric("Kategorien", expenses_filtered["Kategorie"].nunique())
-    col4.metric("Monate", expenses_filtered["Monat_Label"].nunique())
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Ausgaben Gesamt", f"{total:.2f} €")
+    col2.metric("Einnahmen Gesamt", f"{income_total:.2f} €")
+    col3.metric("Anzahl Transaktionen", len(expenses_filtered))
+    col4.metric("Kategorien", expenses_filtered["Kategorie"].nunique())
+    col5.metric("Monate", expenses_filtered["Monat_Label"].nunique())
 
 
 def render_total_pie(expenses_filtered: pd.DataFrame) -> None:
@@ -344,6 +351,28 @@ def render_monthly_pie(expenses_filtered: pd.DataFrame) -> None:
     st.plotly_chart(fig, use_container_width=True)
 
 
+def render_income_pie(income_filtered: pd.DataFrame) -> None:
+    if income_filtered.empty:
+        st.info("Keine Einnahmen für die ausgewählten Filter.")
+        return
+    report = income_filtered.groupby(COL_SENDER)["Betrag"].sum().sort_values(ascending=False).reset_index()
+    total = report["Betrag"].sum()
+    report["Anteil"] = report["Betrag"] / total * 100
+    report["Label"] = report.apply(
+        lambda r: f"{r[COL_SENDER]}<br>{r['Betrag']:.2f} € ({r['Anteil']:.1f}%)", axis=1
+    )
+    fig = px.pie(
+        report,
+        values="Betrag",
+        names=COL_SENDER,
+        title=f"Einnahmen nach Sender (Gesamt: {total:.2f} €)",
+        hover_data={"Betrag": FMT_EUR_THOUSANDS},
+    )
+    fig.update_traces(textinfo="label+percent", textposition="outside")
+    fig.update_layout(legend_title="Sender", font=dict(family=FONT_FAMILY))
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def render_tables(expenses_filtered: pd.DataFrame) -> None:
     with st.expander("Tabellarische Übersicht", expanded=False):
         tab1, tab2, tab3 = st.tabs(["Nach Kategorie", "Monatlich", "Transaktionen"])
@@ -404,7 +433,8 @@ def main() -> None:
         st.info("Keine Daten für die ausgewählten Filter.")
         return
 
-    render_summary(filtered_expenses)
+    income_total = filtered_income["Betrag"].sum() if not filtered_income.empty else 0.0
+    render_summary(filtered_expenses, income_total)
 
     st.divider()
 
@@ -417,6 +447,7 @@ def main() -> None:
         "Einnahmen (Balken)": lambda: render_income_monthly_bar(filtered_income),
         "Einnahmen (Linie)": lambda: render_income_monthly_line(filtered_income),
         "Einnahmen (Jahr)": lambda: render_income_yearly(filtered_income),
+        "Einnahmen (Kreis)": lambda: render_income_pie(filtered_income),
         "Gewinn/Verlust (Monat)": lambda: render_profit_loss(profit_loss),
     }
     chart_map[chart_type]()

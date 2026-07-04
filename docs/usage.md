@@ -36,6 +36,7 @@ make run-yearly         # Nur Kreisdiagramme pro Jahr
 make run-monthly        # Nur Linien- + Balkendiagramm
 make run-monthly-pies   # Nur Kreisdiagramme pro Monat
 make run-income         # Nur Einnahmen-Diagramme
+make run-income-pie     # Nur Einnahmen-Kreisdiagramm
 make run-profit         # Nur Gewinn/Verlust-Diagramm
 ```
 
@@ -48,6 +49,7 @@ python3 pipeline.py yearly          # nur Jahr
 python3 pipeline.py monthly         # nur Monatslinie + Balken
 python3 pipeline.py monthly-pies    # nur Monatskreise
 python3 pipeline.py income          # nur Einnahmen
+python3 pipeline.py income-pie      # nur Einnahmen-Kreis
 python3 pipeline.py profit          # nur Gewinn/Verlust
 ```
 
@@ -80,7 +82,7 @@ make app
 |---|---|
 | Sidebar – Monate | "Alle" oder einzelne Monate auswählen |
 | Sidebar – Kategorien | "Alle" oder einzelne Kategorien filtern |
-| Sidebar – Diagrammtyp | Umschalten zwischen 5 Diagrammarten |
+| Sidebar – Diagrammtyp | Umschalten zwischen 10 Diagrammarten |
 | Diagramm – Hover | Zeigt Betrag + Prozent |
 | Diagramm – Legende | Klick zum Ein-/Ausblenden einzelner Kategorien |
 
@@ -96,6 +98,7 @@ make app
 | Einnahmen (Balken) | Einnahmen pro Monat (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
 | Einnahmen (Linie) | Einnahmen-Verlauf pro Monat (eine Linie pro Zahlungspflichtige*m) |
 | Einnahmen (Jahr) | Einnahmen pro Jahr (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
+| Einnahmen (Kreis) | Einnahmen nach Sender in einem Kreisdiagramm |
 | Gewinn/Verlust (Monat) | Differenz Einnahmen − Ausgaben pro Monat |
 
 ### Tabs unter dem Diagramm
@@ -147,6 +150,7 @@ Alle Python-Befehle funktionieren identisch – nur der Aufruf unterscheidet sic
 | Pipeline (alle) | `make run` | `.venv\Scripts\activate` + `python pipeline.py` |
 | Pipeline (total) | `make run-total` | `.venv\Scripts\activate` + `python pipeline.py total` |
 | Pipeline (income) | `make run-income` | `.venv\Scripts\activate` + `python pipeline.py income` |
+| Pipeline (income-pie) | `make run-income-pie` | `.venv\Scripts\activate` + `python pipeline.py income-pie` |
 | Pipeline (profit) | `make run-profit` | `.venv\Scripts\activate` + `python pipeline.py profit` |
 | Dashboard | `make app` | `.venv\Scripts\activate` + `streamlit run app.py` |
 | PDF → CSV | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |

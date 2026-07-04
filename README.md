@@ -29,7 +29,7 @@ Pipeline to analyse DKB bank statement CSVs and visualise expenses – either as
 - **Automatic CSV import** – reads all `csv/*.csv` files (semicolon-separated, German number format)
 - **Keyword-based categorisation** – editable `categories.toml`, case-insensitive substring matching
 - **Deduplication** – SHA256-based duplicate detection across multiple files
-- **8 chart types** – total/yearly/monthly pie charts, monthly line + stacked bars, income (stacked by payer), yearly income (stacked by payer), income line per payer, profit/loss
+- **10 chart types** – total/yearly/monthly pie charts, monthly line + stacked bars, income (stacked by payer), income line per payer, income (pie by payer), yearly income (stacked by payer), profit/loss
 - **Interactive dashboard** – Streamlit + Plotly with hover data, clickable legends, category/month/chart-type filters
 - **PDF converter** – `pdf2csv.py` extracts tables from DKB PDF statements via `pdfplumber`
 - **Cross-platform** – Linux, macOS, and Windows
