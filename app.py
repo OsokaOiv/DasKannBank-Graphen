@@ -81,7 +81,7 @@ def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
@@ -110,7 +110,7 @@ def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
         yaxis=dict(rangemode="tozero"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_income_yearly(income_filtered: pd.DataFrame) -> None:
@@ -134,7 +134,7 @@ def render_income_yearly(income_filtered: pd.DataFrame) -> None:
         font=dict(family=FONT_FAMILY),
         hovermode="x unified",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_profit_loss(profit_loss: pd.DataFrame) -> None:
@@ -155,7 +155,7 @@ def render_profit_loss(profit_loss: pd.DataFrame) -> None:
         font=dict(family=FONT_FAMILY),
         showlegend=False,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 @st.cache_data
@@ -242,7 +242,7 @@ def render_total_pie(expenses_filtered: pd.DataFrame) -> None:
         font=dict(family=FONT_FAMILY),
         hoverlabel=dict(font_size=12),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_monthly_line(expenses_filtered: pd.DataFrame) -> None:
@@ -271,7 +271,7 @@ def render_monthly_line(expenses_filtered: pd.DataFrame) -> None:
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
         yaxis=dict(rangemode="tozero"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_monthly_stacked(expenses_filtered: pd.DataFrame) -> None:
@@ -297,7 +297,7 @@ def render_monthly_stacked(expenses_filtered: pd.DataFrame) -> None:
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_yearly_pie(expenses_filtered: pd.DataFrame) -> None:
@@ -321,7 +321,7 @@ def render_yearly_pie(expenses_filtered: pd.DataFrame) -> None:
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
     fig.update_layout(legend_title="Kategorie", font=dict(family=FONT_FAMILY))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_monthly_pie(expenses_filtered: pd.DataFrame) -> None:
@@ -348,7 +348,7 @@ def render_monthly_pie(expenses_filtered: pd.DataFrame) -> None:
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
     fig.update_layout(legend_title="Kategorie", font=dict(family=FONT_FAMILY))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_income_pie(income_filtered: pd.DataFrame) -> None:
@@ -370,7 +370,7 @@ def render_income_pie(income_filtered: pd.DataFrame) -> None:
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
     fig.update_layout(legend_title="Sender", font=dict(family=FONT_FAMILY))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_tables(expenses_filtered: pd.DataFrame) -> None:
@@ -380,20 +380,20 @@ def render_tables(expenses_filtered: pd.DataFrame) -> None:
             report = expenses_filtered.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).reset_index()
             report.columns = ["Kategorie", "Betrag (€)"]
             report["Betrag (€)"] = report["Betrag (€)"].apply(lambda x: f"{x:.2f}")
-            st.dataframe(report, use_container_width=True, hide_index=True)
+            st.dataframe(report, width='stretch', hide_index=True)
         with tab2:
             pivot = expenses_filtered.pivot_table(
                 index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
             ).sort_index()
             pivot["Gesamt"] = pivot.sum(axis=1)
             pivot.index = pivot.index.strftime(MONTH_LABEL_FMT)
-            st.dataframe(pivot.style.format("{:.2f}"), use_container_width=True)
+            st.dataframe(pivot.style.format("{:.2f}"), width='stretch')
         with tab3:
             cols = ["Datum", "Zahlungsempfänger*in", "Verwendungszweck", "Betrag", "Kategorie"]
             raw = expenses_filtered[cols].sort_values("Datum").reset_index(drop=True)
             raw["Betrag"] = raw["Betrag"].apply(lambda x: f"{x:.2f} €")
             raw["Datum"] = raw["Datum"].dt.strftime("%d.%m.%Y")
-            st.dataframe(raw, use_container_width=True, hide_index=True)
+            st.dataframe(raw, width='stretch', hide_index=True)
 
 
 def render_uncategorized(expenses_filtered: pd.DataFrame) -> None:
@@ -408,7 +408,7 @@ def render_uncategorized(expenses_filtered: pd.DataFrame) -> None:
         ).sort_values("Betrag", ascending=False)
         grouped.columns = ["Empfänger", "Verwendungszweck", "Betrag (€)", "Anzahl"]
         grouped["Betrag (€)"] = grouped["Betrag (€)"].apply(lambda x: f"{x:.2f}")
-        st.dataframe(grouped, use_container_width=True, hide_index=True)
+        st.dataframe(grouped, width='stretch', hide_index=True)
         st.info("Tipp: Empfänger oder Verwendungszweck als keyword in categories.toml eintragen.")
 
 
