@@ -102,6 +102,7 @@ def write_csv(transactions: list[dict], out_path: Path) -> None:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.WARNING)
     parser = argparse.ArgumentParser(description="DKB-PDF zu CSV Konverter")
     parser.add_argument("--debug", action="store_true", help="Extrahierten Text als .txt speichern")
     args = parser.parse_args()
@@ -136,5 +137,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.WARNING)
     main()

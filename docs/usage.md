@@ -35,16 +35,20 @@ make run-total          # Nur Gesamt-Kreisdiagramm
 make run-yearly         # Nur Kreisdiagramme pro Jahr
 make run-monthly        # Nur Linien- + Balkendiagramm
 make run-monthly-pies   # Nur Kreisdiagramme pro Monat
+make run-income         # Nur Einnahmen-Diagramme
+make run-profit         # Nur Gewinn/Verlust-Diagramm
 ```
 
 Oder direkt mit Python:
 
 ```bash
-python3 pipeline.py                 # alle
+python3 pipeline.py                 # alle (inkl. Einnahmen + Gewinn/Verlust)
 python3 pipeline.py total           # nur Gesamt
 python3 pipeline.py yearly          # nur Jahr
 python3 pipeline.py monthly         # nur Monatslinie + Balken
 python3 pipeline.py monthly-pies    # nur Monatskreise
+python3 pipeline.py income          # nur Einnahmen
+python3 pipeline.py profit          # nur Gewinn/Verlust
 ```
 
 ### Ausgabe
@@ -58,6 +62,9 @@ Diagramme landen als PNGs in `graphs/`:
 | `ausgaben_YYYY-MM.png` | Kreisdiagramm pro Monat |
 | `ausgaben_linien_pro_monat.png` | Liniendiagramm (monatlich) |
 | `ausgaben_gestapelt_pro_monat.png` | Gestapeltes Balkendiagramm (monatlich) |
+| `einnahmen_pro_monat.png` | Einnahmen-Balken pro Monat |
+| `einnahmen_pro_jahr.png` | Einnahmen-Balken pro Jahr |
+| `gewinne_pro_monat.png` | Gewinn/Verlust-Balken pro Monat |
 
 ## Dashboard (interaktiv)
 
@@ -86,6 +93,9 @@ make app
 | Kreis (Monat) | Pie-Chart für einen ausgewählten Monat |
 | Linien (Monat) | Liniendiagramm – Verlauf pro Kategorie |
 | Gestapelte Balken (Monat) | Gestapelte Balken pro Monat |
+| Einnahmen (Balken) | Einnahmen pro Monat |
+| Einnahmen (Linie) | Einnahmen-Verlauf pro Monat |
+| Gewinn/Verlust (Monat) | Differenz Einnahmen − Ausgaben pro Monat |
 
 ### Tabs unter dem Diagramm
 
@@ -116,7 +126,7 @@ Speichert Roh-Text als `.txt`-Datei zum Prüfen der Erkennung.
 make test
 ```
 
-Führt alle Unit-Tests aus (derzeit 19 Tests: 15 pipeline + 4 app).
+Führt alle Unit-Tests aus (derzeit 29 Tests: 22 pipeline + 7 app).
 
 ## Aufräumen
 
@@ -135,6 +145,8 @@ Alle Python-Befehle funktionieren identisch – nur der Aufruf unterscheidet sic
 | Setup | `make install` | `.venv\Scripts\activate` + `pip install -r requirements.txt` |
 | Pipeline (alle) | `make run` | `.venv\Scripts\activate` + `python pipeline.py` |
 | Pipeline (total) | `make run-total` | `.venv\Scripts\activate` + `python pipeline.py total` |
+| Pipeline (income) | `make run-income` | `.venv\Scripts\activate` + `python pipeline.py income` |
+| Pipeline (profit) | `make run-profit` | `.venv\Scripts\activate` + `python pipeline.py profit` |
 | Dashboard | `make app` | `.venv\Scripts\activate` + `streamlit run app.py` |
 | PDF → CSV | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |
 | Tests | `make test` | `.venv\Scripts\activate` + `python -m pytest tests/ -v` |

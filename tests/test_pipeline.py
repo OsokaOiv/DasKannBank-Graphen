@@ -1,6 +1,5 @@
 from pathlib import Path
 import pandas as pd
-import pytest
 
 from pipeline import (
     parse_amount,
@@ -8,6 +7,8 @@ from pipeline import (
     assign_categories,
     transaction_hash,
     load_config,
+    prepare_income,
+    prepare_profit_loss,
 )
 
 
@@ -120,3 +121,94 @@ def test_load_config_defaults():
 def test_load_config_nonexistent_file(tmp_path):
     cfg = load_config()
     assert cfg["display"]["font_family"] == "DejaVu Sans"
+
+
+def test_prepare_income_filters_positive():
+    df = pd.DataFrame({
+        "Datum": pd.to_datetime(["2025-01-15", "2025-01-20"]),
+        "Betrag": [100.0, -50.0],
+    })
+    result = prepare_income(df)
+    assert len(result) == 1
+    assert result.iloc[0]["Betrag"] == 100.0
+
+
+def test_prepare_income_creates_monat_jahr():
+    df = pd.DataFrame({
+        "Datum": pd.to_datetime(["2025-01-15"]),
+        "Betrag": [100.0],
+    })
+    result = prepare_income(df)
+    assert result.iloc[0]["Jahr"] == 2025
+    assert result.iloc[0]["Monat_Label"] == "Jan 2025"
+
+
+def test_prepare_income_empty():
+    df = pd.DataFrame({
+        "Datum": pd.to_datetime(["2025-01-15"]),
+        "Betrag": [-50.0],
+    })
+    result = prepare_income(df)
+    assert result.empty
+
+
+def test_prepare_profit_loss_basic():
+    expenses = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [200.0],
+    })
+    income = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [1000.0],
+    })
+    result = prepare_profit_loss(expenses, income)
+    assert len(result) == 1
+    assert result.iloc[0]["Einnahmen"] == 1000.0
+    assert result.iloc[0]["Ausgaben"] == 200.0
+    assert result.iloc[0]["Differenz"] == 800.0
+    assert result.iloc[0]["Status"] == "Gewinn"
+
+
+def test_prepare_profit_loss_verlust():
+    expenses = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [500.0],
+    })
+    income = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [200.0],
+    })
+    result = prepare_profit_loss(expenses, income)
+    assert result.iloc[0]["Differenz"] == -300.0
+    assert result.iloc[0]["Status"] == "Verlust"
+
+
+def test_prepare_profit_loss_equal():
+    expenses = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [500.0],
+    })
+    income = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [500.0],
+    })
+    result = prepare_profit_loss(expenses, income)
+    assert result.iloc[0]["Differenz"] == 0.0
+    assert result.iloc[0]["Status"] == "Gewinn"
+
+
+def test_prepare_profit_loss_only_expenses():
+    expenses = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01", "2025-02-01"]),
+        "Betrag": [200.0, 300.0],
+    })
+    income = pd.DataFrame({
+        "Monat": pd.to_datetime(["2025-01-01"]),
+        "Betrag": [1000.0],
+    })
+    result = prepare_profit_loss(expenses, income)
+    assert len(result) == 2
+    feb = result[result["Monat"] == pd.Timestamp("2025-02-01")].iloc[0]
+    assert feb["Einnahmen"] == 0.0
+    assert feb["Ausgaben"] == 300.0
+    assert feb["Status"] == "Verlust"

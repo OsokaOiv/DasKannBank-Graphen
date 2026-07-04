@@ -16,6 +16,10 @@ GRAPHS_DIR = Path(__file__).parent / "graphs"
 CATEGORIES_FILE = Path(__file__).parent / "categories.toml"
 CONFIG_FILE = Path(__file__).parent / "pipeline.toml"
 
+COLOR_PROFIT = "#2ecc71"
+COLOR_LOSS = "#e74c3c"
+CATEGORY_OTHER = "Sonstige"
+
 
 def load_config() -> dict:
     defaults = {
@@ -85,6 +89,9 @@ def load_transactions() -> pd.DataFrame:
             dtype=str,
         )
 
+        if "Betrag (€)" not in df.columns:
+            print(f"Warnung: {csv_path.name} enthält keine 'Betrag (€)'-Spalte – übersprungen")
+            continue
         invalid = df["Betrag (€)"].apply(parse_amount).isna()
         if invalid.any():
             warnings.warn(f"{csv_path.name}: {invalid.sum()} Zeile(n) mit ungültigem Betrag übersprungen")
@@ -117,14 +124,14 @@ def load_transactions() -> pd.DataFrame:
 
 
 def assign_categories(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.Series:
-    categories = {cat: [k.upper() for k in kw] for cat, kw in categories.items()}
+    upper_cats = {cat: [k.upper() for k in kw] for cat, kw in categories.items()}
     def categorize(row: pd.Series) -> str:
         text = f"{str(row.get('Zahlungsempfänger*in', '')).upper()} {str(row.get('Verwendungszweck', '')).upper()}"
-        for cat, keywords in categories.items():
+        for cat, keywords in upper_cats.items():
             for kw in keywords:
                 if kw in text:
                     return cat
-        return "Sonstige"
+        return CATEGORY_OTHER
 
     return df.apply(categorize, axis=1)
 
@@ -133,7 +140,7 @@ def _plot_pie_chart(labels: list[str], values: list[float], title: str, filename
     pc = cfg["charts"]["pie"]
     total = sum(values)
     fig, ax = plt.subplots(figsize=(pc["figure_width"], pc["figure_height"]))
-    wedges, texts, autotexts = ax.pie(
+    wedges, _, _ = ax.pie(
         values, labels=None, autopct="", startangle=90, textprops={"fontsize": 9},
     )
     ax.set_title(title, fontsize=14, fontweight="bold")
@@ -170,10 +177,10 @@ def plot_monthly_stacked(monthly: pd.DataFrame, cfg: dict) -> None:
     for cat in categories_in_data:
         vals = pivot[cat].values
         if bottom is None:
-            bars = ax.bar(pivot.index, vals, width=bc["bar_width_days"], label=cat)
+            ax.bar(pivot.index, vals, width=bc["bar_width_days"], label=cat)
             bottom = vals.copy()
         else:
-            bars = ax.bar(pivot.index, vals, width=bc["bar_width_days"], bottom=bottom, label=cat)
+            ax.bar(pivot.index, vals, width=bc["bar_width_days"], bottom=bottom, label=cat)
             bottom = bottom + vals
 
     ax.set_title("Ausgaben pro Monat nach Kategorie", fontsize=14, fontweight="bold")
@@ -255,6 +262,62 @@ def plot_monthly_pies(expenses: pd.DataFrame, cfg: dict) -> None:
         )
 
 
+def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
+    if income.empty:
+        return
+    bc = cfg["charts"]["monthly_bar"]
+    monthly = income.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
+    fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
+    ax.bar(monthly["Monat"], monthly["Betrag"])
+    ax.set_title("Einnahmen pro Monat", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Betrag (€)")
+    ax.set_xlabel("Monat")
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    plt.xticks(rotation=45, ha="right")
+    fig.tight_layout()
+    out_path = GRAPHS_DIR / "einnahmen_pro_monat.png"
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
+    plt.close(fig)
+    print(f"Diagramm gespeichert: {out_path}")
+
+
+def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
+    if income.empty:
+        return
+    bc = cfg["charts"]["monthly_bar"]
+    yearly = income.groupby("Jahr")["Betrag"].sum().reset_index().sort_values("Jahr")
+    fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
+    ax.bar(yearly["Jahr"], yearly["Betrag"])
+    ax.set_title("Einnahmen pro Jahr", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Betrag (€)")
+    fig.tight_layout()
+    out_path = GRAPHS_DIR / "einnahmen_pro_jahr.png"
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
+    plt.close(fig)
+    print(f"Diagramm gespeichert: {out_path}")
+
+
+def plot_profit_loss(profit_loss: pd.DataFrame, cfg: dict) -> None:
+    if profit_loss.empty:
+        return
+    bc = cfg["charts"]["monthly_bar"]
+    fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
+    colors = [COLOR_PROFIT if x >= 0 else COLOR_LOSS for x in profit_loss["Differenz"]]
+    ax.bar(profit_loss["Monat"], profit_loss["Differenz"], color=colors)
+    ax.axhline(y=0, color="gray", linestyle="--", linewidth=1)
+    ax.set_title("Gewinn/Verlust pro Monat", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Differenz (€)")
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    plt.xticks(rotation=45, ha="right")
+    fig.tight_layout()
+    out_path = GRAPHS_DIR / "gewinne_pro_monat.png"
+    fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
+    plt.close(fig)
+    print(f"Diagramm gespeichert: {out_path}")
+
+
 def print_table(report: dict[str, float], title: str = "") -> None:
     total = sum(report.values())
     if title:
@@ -284,6 +347,10 @@ def print_monthly_table(monthly: pd.DataFrame) -> None:
 
 
 def prepare_expenses(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame:
+    if "Betrag" not in df.columns:
+        raise ValueError("prepare_expenses: Spalte 'Betrag' fehlt")
+    if "Datum" not in df.columns:
+        raise ValueError("prepare_expenses: Spalte 'Datum' fehlt")
     expenses = df[df["Betrag"] < 0].copy()
     expenses["Betrag"] = expenses["Betrag"].abs()
     expenses["Kategorie"] = assign_categories(expenses, categories)
@@ -292,8 +359,31 @@ def prepare_expenses(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.D
     return expenses
 
 
+def prepare_income(df: pd.DataFrame) -> pd.DataFrame:
+    if not {"Datum", "Betrag"}.issubset(df.columns):
+        raise ValueError("prepare_income: Spalten 'Datum' und 'Betrag' erforderlich")
+    income = df[df["Betrag"] > 0].copy()
+    income["Monat"] = income["Datum"].dt.to_period("M").dt.to_timestamp()
+    income["Jahr"] = income["Datum"].dt.year
+    income["Monat_Label"] = income["Monat"].dt.strftime("%b %Y")
+    return income
+
+
+def prepare_profit_loss(expenses: pd.DataFrame, income: pd.DataFrame) -> pd.DataFrame:
+    if "Monat" not in expenses.columns:
+        raise ValueError("prepare_profit_loss: Spalte 'Monat' in expenses fehlt")
+    if "Monat" not in income.columns:
+        raise ValueError("prepare_profit_loss: Spalte 'Monat' in income fehlt")
+    monthly_expenses = expenses.groupby("Monat")["Betrag"].sum().rename("Ausgaben")
+    monthly_income = income.groupby("Monat")["Betrag"].sum().rename("Einnahmen")
+    merged = pd.merge(monthly_income, monthly_expenses, left_index=True, right_index=True, how="outer").fillna(0)
+    merged["Differenz"] = merged["Einnahmen"] - merged["Ausgaben"]
+    merged["Status"] = merged["Differenz"].apply(lambda x: "Gewinn" if x >= 0 else "Verlust")
+    return merged.reset_index()
+
+
 def print_uncategorized(expenses: pd.DataFrame) -> None:
-    sonstige = expenses[expenses["Kategorie"] == "Sonstige"]
+    sonstige = expenses[expenses["Kategorie"] == CATEGORY_OTHER]
     if sonstige.empty:
         return
     grouped = sonstige.groupby(["Zahlungsempfänger*in", "Verwendungszweck"], as_index=False).agg(
@@ -324,7 +414,7 @@ def print_all_tables(expenses: pd.DataFrame) -> None:
     print_uncategorized(expenses)
 
 
-def plot_all_charts(expenses: pd.DataFrame, charts: set[str], cfg: dict) -> None:
+def plot_all_charts(expenses: pd.DataFrame, income: pd.DataFrame, profit_loss: pd.DataFrame, charts: set[str], cfg: dict) -> None:
     if "total" in charts:
         report = expenses.groupby("Kategorie")["Betrag"].sum().sort_values(ascending=False).to_dict()
         plot_pie(report, cfg)
@@ -335,23 +425,32 @@ def plot_all_charts(expenses: pd.DataFrame, charts: set[str], cfg: dict) -> None
         plot_monthly_pies(expenses, cfg)
     if "yearly" in charts:
         plot_yearly_pies(expenses, cfg)
+    if "income" in charts:
+        plot_income_monthly(income, cfg)
+        plot_income_yearly(income, cfg)
+    if "profit" in charts:
+        plot_profit_loss(profit_loss, cfg)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ausgaben-Pipeline für DKB-Kontoauszüge")
     parser.add_argument(
-        "charts", nargs="?", choices=["all", "total", "yearly", "monthly", "monthly-pies"], default="all",
+        "charts", nargs="?", choices=["all", "total", "yearly", "monthly", "monthly-pies", "income", "profit"], default="all",
         help="Welche Diagramme erstellt werden sollen (default: all)",
     )
     args = parser.parse_args()
 
     chart_map = {
-        "all": {"total", "yearly", "monthly", "monthly-pies"},
+        "all": {"total", "yearly", "monthly", "monthly-pies", "income", "profit"},
         "total": {"total"},
         "yearly": {"yearly"},
         "monthly": {"monthly"},
         "monthly-pies": {"monthly-pies"},
+        "income": {"income"},
+        "profit": {"profit"},
     }
+
+    warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
 
     cfg = load_config()
     plt.rcParams["font.family"] = cfg["display"]["font_family"]
@@ -366,10 +465,11 @@ def main() -> None:
         return
 
     expenses = prepare_expenses(df, categories)
+    income_data = prepare_income(df)
+    profit_loss_data = prepare_profit_loss(expenses, income_data)
     print_all_tables(expenses)
-    plot_all_charts(expenses, chart_map[args.charts], cfg)
+    plot_all_charts(expenses, income_data, profit_loss_data, chart_map[args.charts], cfg)
 
 
 if __name__ == "__main__":
-    warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
     main()

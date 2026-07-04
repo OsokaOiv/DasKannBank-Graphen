@@ -8,8 +8,27 @@ from pipeline import (
     load_categories,
     load_transactions,
     prepare_expenses,
+    prepare_income,
+    prepare_profit_loss,
     CATEGORIES_FILE,
+    CATEGORY_OTHER,
+    COLOR_PROFIT,
+    COLOR_LOSS,
 )
+
+FONT_FAMILY = "DejaVu Sans"
+FMT_EUR = ":.2f €"
+MONTH_LABEL_FMT = "%b %Y"
+AXIS_MONAT = "Monat"
+AXIS_BETRAG = "Betrag (€)"
+FMT_EUR_THOUSANDS = ":,.2f €"
+FMT_PCT = ":.1f%"
+
+
+def _filter_by_months(df: pd.DataFrame, selected_months: list[str]) -> pd.DataFrame:
+    if selected_months and "Monat_Label" in df.columns:
+        return df[df["Monat_Label"].isin(selected_months)]
+    return df
 
 
 def filter_expenses(
@@ -17,39 +36,126 @@ def filter_expenses(
     selected_months: list[str] | None = None,
     selected_categories: list[str] | None = None,
 ) -> pd.DataFrame:
-    filtered = expenses.copy()
     if selected_months is None:
         selected_months = []
     if selected_categories is None:
         selected_categories = []
-    if selected_months:
-        filtered = filtered[filtered["Monat_Label"].isin(selected_months)]
-    if selected_categories:
+    filtered = _filter_by_months(expenses, selected_months)
+    if selected_categories and "Kategorie" in filtered.columns:
         filtered = filtered[filtered["Kategorie"].isin(selected_categories)]
     return filtered
 
 
+def filter_income(
+    income: pd.DataFrame,
+    selected_months: list[str] | None = None,
+) -> pd.DataFrame:
+    if selected_months is None:
+        selected_months = []
+    return _filter_by_months(income, selected_months)
+
+
+def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
+    report = income_filtered.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
+    fig = px.bar(
+        report,
+        x="Monat",
+        y="Betrag",
+        title="Einnahmen pro Monat",
+        hover_data={"Betrag": FMT_EUR},
+    )
+    fig.update_layout(
+        xaxis_title=AXIS_MONAT,
+        yaxis_title=AXIS_BETRAG,
+        font=dict(family=FONT_FAMILY),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
+    report = income_filtered.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
+    fig = px.line(
+        report,
+        x="Monat",
+        y="Betrag",
+        title="Einnahmen pro Monat (Verlauf)",
+        markers=True,
+        text="Betrag",
+    )
+    fig.update_traces(texttemplate="%{text:.2f} €", textposition="top center")
+    fig.update_layout(
+        xaxis_title=AXIS_MONAT,
+        yaxis_title=AXIS_BETRAG,
+        font=dict(family=FONT_FAMILY),
+        hovermode="x unified",
+        yaxis=dict(rangemode="tozero"),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def render_income_yearly(income_filtered: pd.DataFrame) -> None:
+    report = income_filtered.groupby("Jahr")["Betrag"].sum().reset_index().sort_values("Jahr")
+    report["Jahr"] = report["Jahr"].astype(str)
+    fig = px.bar(
+        report,
+        x="Jahr",
+        y="Betrag",
+        title="Einnahmen pro Jahr",
+        hover_data={"Betrag": FMT_EUR},
+    )
+    fig.update_layout(
+        xaxis_title="Jahr",
+        yaxis_title=AXIS_BETRAG,
+        font=dict(family=FONT_FAMILY),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def render_profit_loss(profit_loss: pd.DataFrame) -> None:
+    color_map = {"Gewinn": COLOR_PROFIT, "Verlust": COLOR_LOSS}
+    fig = px.bar(
+        profit_loss,
+        x="Monat",
+        y="Differenz",
+        color="Status",
+        color_discrete_map=color_map,
+        title="Gewinn/Verlust pro Monat",
+        hover_data={"Einnahmen": FMT_EUR, "Ausgaben": FMT_EUR, "Differenz": FMT_EUR},
+    )
+    fig.add_hline(y=0, line_dash="dash", line_color="gray")
+    fig.update_layout(
+        xaxis_title=AXIS_MONAT,
+        yaxis_title=AXIS_BETRAG,
+        font=dict(family=FONT_FAMILY),
+        showlegend=False,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
 @st.cache_data
-def load_data() -> tuple[pd.DataFrame, dict]:
+def load_data() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     categories = load_categories(CATEGORIES_FILE)
     df = load_transactions()
     if df.empty:
-        return pd.DataFrame(), categories
+        return pd.DataFrame(), pd.DataFrame(), categories
     expenses = prepare_expenses(df, categories)
-    expenses["Monat_Label"] = expenses["Monat"].dt.strftime("%b %Y")
-    return expenses, categories
+    expenses["Monat_Label"] = expenses["Monat"].dt.strftime(MONTH_LABEL_FMT)
+    income = prepare_income(df)
+    return expenses, income, categories
 
 
 def render_sidebar(expenses: pd.DataFrame) -> tuple:
     st.sidebar.title("Filter")
-    months = sorted(expenses["Monat_Label"].unique(), key=lambda x: datetime.strptime(x, "%b %Y"))
+    if expenses.empty or "Monat_Label" not in expenses.columns:
+        return "Kreis (Gesamt)", [], []
+    months = sorted(expenses["Monat_Label"].unique(), key=lambda x: datetime.strptime(x, MONTH_LABEL_FMT))
     all_months = st.sidebar.checkbox("Alle Monate", value=True)
     if all_months:
         selected_months = months
     else:
         selected_months = st.sidebar.multiselect("Monate", months, default=months)
 
-    categories = sorted(expenses["Kategorie"].unique())
+    categories = sorted(expenses["Kategorie"].unique()) if not expenses.empty else []
     all_cats = st.sidebar.checkbox("Alle Kategorien", value=True)
     if all_cats:
         selected_categories = categories
@@ -64,6 +170,10 @@ def render_sidebar(expenses: pd.DataFrame) -> tuple:
             "Kreis (Monat)",
             "Linien (Monat)",
             "Gestapelte Balken (Monat)",
+            "Einnahmen (Balken)",
+            "Einnahmen (Linie)",
+            "Einnahmen (Jahr)",
+            "Gewinn/Verlust (Monat)",
         ],
     )
 
@@ -91,12 +201,12 @@ def render_total_pie(expenses_filtered: pd.DataFrame) -> None:
         values="Betrag",
         names="Kategorie",
         title=f"Ausgaben nach Kategorie (Gesamt: {total:.2f} €)",
-        hover_data={"Betrag": ":,.2f €", "Anteil": ":.1f%"},
+        hover_data={"Betrag": FMT_EUR_THOUSANDS, "Anteil": FMT_PCT},
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
     fig.update_layout(
         legend_title="Kategorie",
-        font=dict(family="DejaVu Sans"),
+        font=dict(family=FONT_FAMILY),
         hoverlabel=dict(font_size=12),
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -120,10 +230,10 @@ def render_monthly_line(expenses_filtered: pd.DataFrame) -> None:
         ))
     fig.update_layout(
         title="Ausgaben pro Monat nach Kategorie",
-        xaxis_title="Monat",
-        yaxis_title="Betrag (€)",
+        xaxis_title=AXIS_MONAT,
+        yaxis_title=AXIS_BETRAG,
         legend_title="Kategorie",
-        font=dict(family="DejaVu Sans"),
+        font=dict(family=FONT_FAMILY),
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
         yaxis=dict(rangemode="tozero"),
@@ -147,10 +257,10 @@ def render_monthly_stacked(expenses_filtered: pd.DataFrame) -> None:
     fig.update_layout(
         barmode="stack",
         title="Ausgaben pro Monat nach Kategorie",
-        xaxis_title="Monat",
-        yaxis_title="Betrag (€)",
+        xaxis_title=AXIS_MONAT,
+        yaxis_title=AXIS_BETRAG,
         legend_title="Kategorie",
-        font=dict(family="DejaVu Sans"),
+        font=dict(family=FONT_FAMILY),
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
     )
@@ -174,17 +284,17 @@ def render_yearly_pie(expenses_filtered: pd.DataFrame) -> None:
         values="Betrag",
         names="Kategorie",
         title=f"Ausgaben {selected} (Gesamt: {total:.2f} €)",
-        hover_data={"Betrag": ":,.2f €"},
+        hover_data={"Betrag": FMT_EUR_THOUSANDS},
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
-    fig.update_layout(legend_title="Kategorie", font=dict(family="DejaVu Sans"))
+    fig.update_layout(legend_title="Kategorie", font=dict(family=FONT_FAMILY))
     st.plotly_chart(fig, use_container_width=True)
 
 
 def render_monthly_pie(expenses_filtered: pd.DataFrame) -> None:
     months = sorted(
         expenses_filtered["Monat_Label"].unique(),
-        key=lambda x: datetime.strptime(x, "%b %Y"),
+        key=lambda x: datetime.strptime(x, MONTH_LABEL_FMT),
     )
     if not months:
         st.info("Keine Daten verfügbar.")
@@ -201,10 +311,10 @@ def render_monthly_pie(expenses_filtered: pd.DataFrame) -> None:
         values="Betrag",
         names="Kategorie",
         title=f"Ausgaben {selected} (Gesamt: {total:.2f} €)",
-        hover_data={"Betrag": ":,.2f €"},
+        hover_data={"Betrag": FMT_EUR_THOUSANDS},
     )
     fig.update_traces(textinfo="label+percent", textposition="outside")
-    fig.update_layout(legend_title="Kategorie", font=dict(family="DejaVu Sans"))
+    fig.update_layout(legend_title="Kategorie", font=dict(family=FONT_FAMILY))
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -221,7 +331,7 @@ def render_tables(expenses_filtered: pd.DataFrame) -> None:
                 index="Monat", columns="Kategorie", values="Betrag", aggfunc="sum", fill_value=0
             ).sort_index()
             pivot["Gesamt"] = pivot.sum(axis=1)
-            pivot.index = pivot.index.strftime("%b %Y")
+            pivot.index = pivot.index.strftime(MONTH_LABEL_FMT)
             st.dataframe(pivot.style.format("{:.2f}"), use_container_width=True)
         with tab3:
             cols = ["Datum", "Zahlungsempfänger*in", "Verwendungszweck", "Betrag", "Kategorie"]
@@ -232,7 +342,7 @@ def render_tables(expenses_filtered: pd.DataFrame) -> None:
 
 
 def render_uncategorized(expenses_filtered: pd.DataFrame) -> None:
-    sonstige = expenses_filtered[expenses_filtered["Kategorie"] == "Sonstige"]
+    sonstige = expenses_filtered[expenses_filtered["Kategorie"] == CATEGORY_OTHER]
     if sonstige.empty:
         st.success("Alle Ausgaben sind kategorisiert! 🎉")
         return
@@ -251,7 +361,7 @@ def main() -> None:
     st.set_page_config(page_title="DKB Ausgaben-Dashboard", layout="wide")
     st.title("📊 DKB Ausgaben-Dashboard")
 
-    expenses, categories = load_data()
+    expenses, income, _ = load_data()
 
     if expenses.empty:
         st.warning("Keine CSV-Dateien im Ordner 'csv/' gefunden. Lege dort DKB-Exporte ab.")
@@ -260,27 +370,33 @@ def main() -> None:
     st.sidebar.header("Steuerung")
     chart_type, selected_months, selected_categories = render_sidebar(expenses)
 
-    filtered = filter_expenses(expenses, selected_months, selected_categories)
+    filtered_expenses = filter_expenses(expenses, selected_months, selected_categories)
+    filtered_income = filter_income(income, selected_months)
+    profit_loss = prepare_profit_loss(filtered_expenses, filtered_income)
 
-    if filtered.empty:
+    if filtered_expenses.empty:
         st.info("Keine Daten für die ausgewählten Filter.")
         return
 
-    render_summary(filtered)
+    render_summary(filtered_expenses)
 
     st.divider()
 
     chart_map = {
-        "Kreis (Gesamt)": render_total_pie,
-        "Kreis (Jahr)": render_yearly_pie,
-        "Kreis (Monat)": render_monthly_pie,
-        "Linien (Monat)": render_monthly_line,
-        "Gestapelte Balken (Monat)": render_monthly_stacked,
+        "Kreis (Gesamt)": lambda: render_total_pie(filtered_expenses),
+        "Kreis (Jahr)": lambda: render_yearly_pie(filtered_expenses),
+        "Kreis (Monat)": lambda: render_monthly_pie(filtered_expenses),
+        "Linien (Monat)": lambda: render_monthly_line(filtered_expenses),
+        "Gestapelte Balken (Monat)": lambda: render_monthly_stacked(filtered_expenses),
+        "Einnahmen (Balken)": lambda: render_income_monthly_bar(filtered_income),
+        "Einnahmen (Linie)": lambda: render_income_monthly_line(filtered_income),
+        "Einnahmen (Jahr)": lambda: render_income_yearly(filtered_income),
+        "Gewinn/Verlust (Monat)": lambda: render_profit_loss(profit_loss),
     }
-    chart_map[chart_type](filtered)
+    chart_map[chart_type]()
 
-    render_tables(filtered)
-    render_uncategorized(filtered)
+    render_tables(filtered_expenses)
+    render_uncategorized(filtered_expenses)
 
 
 if __name__ == "__main__":
