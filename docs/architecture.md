@@ -35,8 +35,8 @@ pdf2csv.py ──► *.csv ──► pipeline.py ──► graphs/*.png
 - `plot_monthly_pies()` – ein Pie pro Monat
 - `plot_monthly_lines()` – Liniendiagramm (monatlicher Verlauf pro Kategorie)
 - `plot_monthly_stacked()` – gestapeltes Balkendiagramm
-- `plot_income_monthly()` – Einnahmen-Balken pro Monat
-- `plot_income_yearly()` – Einnahmen-Balken pro Jahr
+- `plot_income_monthly()` – Gestapelte Einnahmen-Balken pro Monat (farbcodiert nach Empfänger)
+- `plot_income_yearly()` – Gestapelte Einnahmen-Balken pro Jahr (farbcodiert nach Empfänger)
 - `plot_profit_loss()` – Gewinn/Verlust-Balken pro Monat
 - `print_table()` / `print_monthly_table()` / `print_uncategorized()` – Konsolen-Tabellen
 
@@ -48,8 +48,9 @@ pdf2csv.py ──► *.csv ──► pipeline.py ──► graphs/*.png
 - `render_summary()` – 4 Metrik-Kacheln (Gesamt, Anzahl, Kategorien, Monate)
 - `render_total_pie()` / `render_yearly_pie()` / `render_monthly_pie()` – Plotly-Kreisdiagramme
 - `render_monthly_line()` / `render_monthly_stacked()` – Plotly-Linien/Stacked-Bar
-- `render_income_monthly_bar()` / `render_income_monthly_line()` – Einnahmen-Diagramme
-- `render_income_yearly()` – Jahres-Einnahmen
+- `render_income_monthly_bar()` – Gestapelte Einnahmen-Balken (farbcodiert nach Empfänger)
+- `render_income_monthly_line()` – Einnahmen-Linien (eine pro Empfänger)
+- `render_income_yearly()` – Gestapelte Einnahmen-Jahresbalken (farbcodiert nach Empfänger)
 - `render_profit_loss()` – Gewinn/Verlust-Balken
 - `render_tables()` – aufklappbare Daten-Tabs (Kategorie, Monatlich, Rohdaten)
 - `render_uncategorized()` – Tabelle mit nicht kategorisierten Ausgaben

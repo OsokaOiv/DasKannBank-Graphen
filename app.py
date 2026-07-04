@@ -56,57 +56,79 @@ def filter_income(
 
 
 def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
-    report = income_filtered.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
-    fig = px.bar(
-        report,
-        x="Monat",
-        y="Betrag",
-        title="Einnahmen pro Monat",
-        hover_data={"Betrag": FMT_EUR},
-    )
+    pivot = income_filtered.pivot_table(
+        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+    ).sort_index()
+    fig = go.Figure()
+    for sender in pivot.columns:
+        fig.add_trace(go.Bar(
+            x=pivot.index,
+            y=pivot[sender],
+            name=sender,
+            hovertemplate=f"{sender}<br>%{{x|%b %Y}}<br>%{{y:.2f}} €<extra></extra>",
+        ))
     fig.update_layout(
+        barmode="stack",
+        title="Einnahmen pro Monat",
         xaxis_title=AXIS_MONAT,
         yaxis_title=AXIS_BETRAG,
+        legend_title="Empfänger",
         font=dict(family=FONT_FAMILY),
+        hovermode="x unified",
+        xaxis=dict(dtick="M1", tickformat="%b %Y"),
     )
     st.plotly_chart(fig, use_container_width=True)
 
 
 def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
-    report = income_filtered.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
-    fig = px.line(
-        report,
-        x="Monat",
-        y="Betrag",
-        title="Einnahmen pro Monat (Verlauf)",
-        markers=True,
-        text="Betrag",
-    )
-    fig.update_traces(texttemplate="%{text:.2f} €", textposition="top center")
+    pivot = income_filtered.pivot_table(
+        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+    ).sort_index()
+    fig = go.Figure()
+    for sender in pivot.columns:
+        fig.add_trace(go.Scatter(
+            x=pivot.index,
+            y=pivot[sender],
+            mode="lines+markers+text",
+            name=sender,
+            text=[f"{v:.2f} €" if v > 0 else "" for v in pivot[sender]],
+            textposition="top center",
+            textfont=dict(size=9),
+            hovertemplate=f"{sender}<br>%{{x|%b %Y}}<br>%{{y:.2f}} €<extra></extra>",
+        ))
     fig.update_layout(
+        title="Einnahmen pro Monat (Verlauf)",
         xaxis_title=AXIS_MONAT,
         yaxis_title=AXIS_BETRAG,
+        legend_title="Empfänger",
         font=dict(family=FONT_FAMILY),
         hovermode="x unified",
+        xaxis=dict(dtick="M1", tickformat="%b %Y"),
         yaxis=dict(rangemode="tozero"),
     )
     st.plotly_chart(fig, use_container_width=True)
 
 
 def render_income_yearly(income_filtered: pd.DataFrame) -> None:
-    report = income_filtered.groupby("Jahr")["Betrag"].sum().reset_index().sort_values("Jahr")
-    report["Jahr"] = report["Jahr"].astype(str)
-    fig = px.bar(
-        report,
-        x="Jahr",
-        y="Betrag",
-        title="Einnahmen pro Jahr",
-        hover_data={"Betrag": FMT_EUR},
-    )
+    pivot = income_filtered.pivot_table(
+        index="Jahr", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+    ).sort_index()
+    fig = go.Figure()
+    for sender in pivot.columns:
+        fig.add_trace(go.Bar(
+            x=pivot.index,
+            y=pivot[sender],
+            name=sender,
+            hovertemplate=f"{sender}<br>%{{x}}<br>%{{y:.2f}} €<extra></extra>",
+        ))
     fig.update_layout(
+        barmode="stack",
+        title="Einnahmen pro Jahr",
         xaxis_title="Jahr",
         yaxis_title=AXIS_BETRAG,
+        legend_title="Empfänger",
         font=dict(family=FONT_FAMILY),
+        hovermode="x unified",
     )
     st.plotly_chart(fig, use_container_width=True)
 

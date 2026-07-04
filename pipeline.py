@@ -266,12 +266,23 @@ def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
     if income.empty:
         return
     bc = cfg["charts"]["monthly_bar"]
-    monthly = income.groupby("Monat")["Betrag"].sum().reset_index().sort_values("Monat")
+    pivot = income.pivot_table(
+        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+    ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
-    ax.bar(monthly["Monat"], monthly["Betrag"])
+    bottom = None
+    for sender in pivot.columns:
+        vals = pivot[sender].values
+        if bottom is None:
+            ax.bar(pivot.index, vals, width=bc["bar_width_days"], label=sender)
+            bottom = vals.copy()
+        else:
+            ax.bar(pivot.index, vals, width=bc["bar_width_days"], bottom=bottom, label=sender)
+            bottom = bottom + vals
     ax.set_title("Einnahmen pro Monat", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
     ax.set_xlabel("Monat")
+    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     plt.xticks(rotation=45, ha="right")
@@ -286,11 +297,22 @@ def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
     if income.empty:
         return
     bc = cfg["charts"]["monthly_bar"]
-    yearly = income.groupby("Jahr")["Betrag"].sum().reset_index().sort_values("Jahr")
+    pivot = income.pivot_table(
+        index="Jahr", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+    ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
-    ax.bar(yearly["Jahr"], yearly["Betrag"])
+    bottom = None
+    for sender in pivot.columns:
+        vals = pivot[sender].values
+        if bottom is None:
+            ax.bar(pivot.index, vals, width=0.6, label=sender)
+            bottom = vals.copy()
+        else:
+            ax.bar(pivot.index, vals, width=0.6, bottom=bottom, label=sender)
+            bottom = bottom + vals
     ax.set_title("Einnahmen pro Jahr", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
+    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
     fig.tight_layout()
     out_path = GRAPHS_DIR / "einnahmen_pro_jahr.png"
     fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")

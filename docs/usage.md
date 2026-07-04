@@ -62,8 +62,8 @@ Diagramme landen als PNGs in `graphs/`:
 | `ausgaben_YYYY-MM.png` | Kreisdiagramm pro Monat |
 | `ausgaben_linien_pro_monat.png` | Liniendiagramm (monatlich) |
 | `ausgaben_gestapelt_pro_monat.png` | Gestapeltes Balkendiagramm (monatlich) |
-| `einnahmen_pro_monat.png` | Einnahmen-Balken pro Monat |
-| `einnahmen_pro_jahr.png` | Einnahmen-Balken pro Jahr |
+| `einnahmen_pro_monat.png` | Einnahmen pro Monat (gestapelt, farbcodiert nach Empfänger) |
+| `einnahmen_pro_jahr.png` | Einnahmen pro Jahr (gestapelt, farbcodiert nach Empfänger) |
 | `gewinne_pro_monat.png` | Gewinn/Verlust-Balken pro Monat |
 
 ## Dashboard (interaktiv)
@@ -93,8 +93,9 @@ make app
 | Kreis (Monat) | Pie-Chart für einen ausgewählten Monat |
 | Linien (Monat) | Liniendiagramm – Verlauf pro Kategorie |
 | Gestapelte Balken (Monat) | Gestapelte Balken pro Monat |
-| Einnahmen (Balken) | Einnahmen pro Monat |
-| Einnahmen (Linie) | Einnahmen-Verlauf pro Monat |
+| Einnahmen (Balken) | Einnahmen pro Monat (gestapelt, farbcodiert nach Empfänger) |
+| Einnahmen (Linie) | Einnahmen-Verlauf pro Monat (eine Linie pro Empfänger) |
+| Einnahmen (Jahr) | Einnahmen pro Jahr (gestapelt, farbcodiert nach Empfänger) |
 | Gewinn/Verlust (Monat) | Differenz Einnahmen − Ausgaben pro Monat |
 
 ### Tabs unter dem Diagramm
