@@ -158,7 +158,7 @@ def render_profit_loss(profit_loss: pd.DataFrame) -> None:
     st.plotly_chart(fig, width='stretch')
 
 
-@st.cache_data
+@st.cache_data(persist="disk")
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     categories = load_categories(CATEGORIES_FILE)
     df = load_transactions()
