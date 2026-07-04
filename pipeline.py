@@ -16,6 +16,8 @@ GRAPHS_DIR = Path(__file__).parent / "graphs"
 CATEGORIES_FILE = Path(__file__).parent / "categories.toml"
 CONFIG_FILE = Path(__file__).parent / "pipeline.toml"
 
+COL_SENDER = "Zahlungspflichtige*r"
+BAR_WIDTH_YEARLY = 0.6
 COLOR_PROFIT = "#2ecc71"
 COLOR_LOSS = "#e74c3c"
 CATEGORY_OTHER = "Sonstige"
@@ -267,7 +269,7 @@ def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
         return
     bc = cfg["charts"]["monthly_bar"]
     pivot = income.pivot_table(
-        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Monat", columns=COL_SENDER, values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
     bottom = None
@@ -282,7 +284,7 @@ def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
     ax.set_title("Einnahmen pro Monat", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
     ax.set_xlabel("Monat")
-    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.legend(title="Sender", bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     plt.xticks(rotation=45, ha="right")
@@ -298,21 +300,22 @@ def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
         return
     bc = cfg["charts"]["monthly_bar"]
     pivot = income.pivot_table(
-        index="Jahr", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Jahr", columns=COL_SENDER, values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
     bottom = None
     for sender in pivot.columns:
         vals = pivot[sender].values
         if bottom is None:
-            ax.bar(pivot.index, vals, width=0.6, label=sender)
+            ax.bar(pivot.index, vals, width=BAR_WIDTH_YEARLY, label=sender)
             bottom = vals.copy()
         else:
-            ax.bar(pivot.index, vals, width=0.6, bottom=bottom, label=sender)
+            ax.bar(pivot.index, vals, width=BAR_WIDTH_YEARLY, bottom=bottom, label=sender)
             bottom = bottom + vals
     ax.set_title("Einnahmen pro Jahr", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
-    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.set_xlabel("Jahr")
+    ax.legend(title="Sender", bbox_to_anchor=(1.02, 1), loc="upper left")
     fig.tight_layout()
     out_path = GRAPHS_DIR / "einnahmen_pro_jahr.png"
     fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
