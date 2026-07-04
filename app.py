@@ -55,9 +55,12 @@ def filter_income(
     return _filter_by_months(income, selected_months)
 
 
+COL_SENDER = "Zahlungspflichtige*r"
+
+
 def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
     pivot = income_filtered.pivot_table(
-        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Monat", columns=COL_SENDER, values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig = go.Figure()
     for sender in pivot.columns:
@@ -72,7 +75,7 @@ def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
         title="Einnahmen pro Monat",
         xaxis_title=AXIS_MONAT,
         yaxis_title=AXIS_BETRAG,
-        legend_title="Empfänger",
+        legend_title="Sender",
         font=dict(family=FONT_FAMILY),
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
@@ -82,7 +85,7 @@ def render_income_monthly_bar(income_filtered: pd.DataFrame) -> None:
 
 def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
     pivot = income_filtered.pivot_table(
-        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Monat", columns=COL_SENDER, values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig = go.Figure()
     for sender in pivot.columns:
@@ -100,7 +103,7 @@ def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
         title="Einnahmen pro Monat (Verlauf)",
         xaxis_title=AXIS_MONAT,
         yaxis_title=AXIS_BETRAG,
-        legend_title="Empfänger",
+        legend_title="Sender",
         font=dict(family=FONT_FAMILY),
         hovermode="x unified",
         xaxis=dict(dtick="M1", tickformat="%b %Y"),
@@ -111,7 +114,7 @@ def render_income_monthly_line(income_filtered: pd.DataFrame) -> None:
 
 def render_income_yearly(income_filtered: pd.DataFrame) -> None:
     pivot = income_filtered.pivot_table(
-        index="Jahr", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Jahr", columns=COL_SENDER, values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig = go.Figure()
     for sender in pivot.columns:
@@ -126,7 +129,7 @@ def render_income_yearly(income_filtered: pd.DataFrame) -> None:
         title="Einnahmen pro Jahr",
         xaxis_title="Jahr",
         yaxis_title=AXIS_BETRAG,
-        legend_title="Empfänger",
+        legend_title="Sender",
         font=dict(family=FONT_FAMILY),
         hovermode="x unified",
     )

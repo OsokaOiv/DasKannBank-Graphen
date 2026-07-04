@@ -267,7 +267,7 @@ def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
         return
     bc = cfg["charts"]["monthly_bar"]
     pivot = income.pivot_table(
-        index="Monat", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Monat", columns="Zahlungspflichtige*r", values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
     bottom = None
@@ -282,7 +282,7 @@ def plot_income_monthly(income: pd.DataFrame, cfg: dict) -> None:
     ax.set_title("Einnahmen pro Monat", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
     ax.set_xlabel("Monat")
-    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.legend(title="Sender", bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     plt.xticks(rotation=45, ha="right")
@@ -298,7 +298,7 @@ def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
         return
     bc = cfg["charts"]["monthly_bar"]
     pivot = income.pivot_table(
-        index="Jahr", columns="Zahlungsempfänger*in", values="Betrag", aggfunc="sum", fill_value=0
+        index="Jahr", columns="Zahlungspflichtige*r", values="Betrag", aggfunc="sum", fill_value=0
     ).sort_index()
     fig, ax = plt.subplots(figsize=(bc["figure_width"], bc["figure_height"]))
     bottom = None
@@ -312,7 +312,7 @@ def plot_income_yearly(income: pd.DataFrame, cfg: dict) -> None:
             bottom = bottom + vals
     ax.set_title("Einnahmen pro Jahr", fontsize=14, fontweight="bold")
     ax.set_ylabel("Betrag (€)")
-    ax.legend(title="Empfänger", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.legend(title="Sender", bbox_to_anchor=(1.02, 1), loc="upper left")
     fig.tight_layout()
     out_path = GRAPHS_DIR / "einnahmen_pro_jahr.png"
     fig.savefig(out_path, dpi=cfg["display"]["dpi"], bbox_inches="tight")
