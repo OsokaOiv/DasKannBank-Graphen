@@ -2,7 +2,7 @@ VENV = .venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 
-.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies run-income run-income-pie run-profit pdf2csv test clean app
+.PHONY: help install run run-total run-yearly run-monthly run-monthly-pies run-income run-income-pie run-profit pdf2csv test clean app api desktop-install desktop-dev
 
 help:
 	@echo "Verfügbare Befehle:"
@@ -17,6 +17,9 @@ help:
 	@echo "  make run-profit        — Nur Gewinn/Verlust-Diagramm"
 	@echo "  make pdf2csv           — PDFs aus pdf/ in CSV konvertieren"
 	@echo "  make app               — Streamlit-Dashboard starten (interaktiv)"
+	@echo "  make api               — FastAPI-Backend starten (localhost:8765)"
+	@echo "  make desktop-install   — npm-Abhängigkeiten für Desktop-App installieren"
+	@echo "  make desktop-dev       — FastAPI + Vite dev server starten"
 	@echo "  make test              — Tests ausführen (pytest)"
 	@echo "  make clean             — Diagramme, venv und gecachte PDF-Daten löschen"
 
@@ -58,6 +61,16 @@ pdf2csv: $(VENV)
 
 app: $(VENV)
 	$(VENV)/bin/streamlit run app.py
+
+api: $(VENV)
+	$(PYTHON) api.py
+
+desktop-install:
+	cd desktop && npm install
+
+desktop-dev:
+	$(PYTHON) api.py &
+	cd desktop && npm run dev
 
 clean:
 	rm -rf graphs/*.png
