@@ -434,10 +434,6 @@ def main() -> None:
 
     expenses, income, _ = load_data()
 
-    if expenses.empty:
-        st.warning("Keine CSV-Dateien im Ordner 'csv/' gefunden. Lege dort DKB-Exporte ab.")
-        return
-
     st.sidebar.header("Steuerung")
 
     with st.sidebar.popover("📁 CSV hochladen"):
@@ -463,6 +459,10 @@ def main() -> None:
                 if saved > 0:
                     st.cache_data.clear()
                     st.rerun()
+
+    if expenses.empty:
+        st.warning("Keine CSV-Dateien gefunden. Lade über den Sidebar-Button '📁 CSV hochladen' eine DKB-CSV-Datei hoch.")
+        return
 
     chart_type, selected_months, selected_categories = render_sidebar(expenses)
 
