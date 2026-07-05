@@ -105,7 +105,8 @@ def test_save_uploaded_files_error(tmp_path, monkeypatch):
     assert len(errors) >= 1
 
 
-def test_save_uploaded_files_empty():
+def test_save_uploaded_files_empty(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     saved, errors = _save_uploaded_files([])
     assert saved == 0
     assert errors == []

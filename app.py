@@ -437,8 +437,6 @@ def main() -> None:
 
     expenses, income, _ = load_data()
 
-    st.sidebar.header("Steuerung")
-
     with st.sidebar.popover("📁 CSV hochladen"):
         uploaded_files = st.file_uploader(
             "DKB-CSV-Dateien hier ablegen",
@@ -467,6 +465,7 @@ def main() -> None:
         st.warning("Keine CSV-Dateien gefunden. Lade über den Sidebar-Button '📁 CSV hochladen' eine DKB-CSV-Datei hoch.")
         return
 
+    st.sidebar.header("Steuerung")
     chart_type, selected_months, selected_categories = render_sidebar(expenses)
 
     filtered_expenses = filter_expenses(expenses, selected_months, selected_categories)
