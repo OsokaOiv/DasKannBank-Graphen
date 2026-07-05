@@ -6,12 +6,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from pipeline import (
+from data import (
     load_categories,
     load_transactions,
     prepare_expenses,
     prepare_income,
     prepare_profit_loss,
+)
+from constants import (
     CATEGORIES_FILE,
     CATEGORY_OTHER,
     COLOR_PROFIT,
