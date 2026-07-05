@@ -110,3 +110,29 @@ def test_save_uploaded_files_empty(tmp_path, monkeypatch):
     saved, errors = _save_uploaded_files([])
     assert saved == 0
     assert errors == []
+
+
+from fastapi.testclient import TestClient
+import api as api_module
+
+
+def test_api_health():
+    client = TestClient(api_module.app)
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+
+
+def test_api_data_returns_structure():
+    client = TestClient(api_module.app)
+    r = client.get("/api/data")
+    assert r.status_code == 200
+    data = r.json()
+    assert "expenses" in data
+    assert "income" in data
+    assert "profit_loss" in data
+    assert "categories" in data
+    assert isinstance(data["expenses"], list)
+    assert isinstance(data["income"], list)
+    assert isinstance(data["profit_loss"], list)
+    assert isinstance(data["categories"], list)
