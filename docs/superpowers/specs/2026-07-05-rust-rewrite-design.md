@@ -7,42 +7,81 @@
 
 Rewrite the Python data pipeline (`data.py`, `pipeline.py`, `pdf2csv.py`, `api.py`) in Rust and package the entire application as a single, self-contained Tauri desktop binary. Users should be able to download an installer and run the app without installing Python, Node.js, or any other dependency.
 
+## Directory Structure
+
+```
+/
+├── api.py                     # UNTOUCHED — FastAPI backend (web-dashboard)
+├── app.py                     # UNTOUCHED — Streamlit
+├── pipeline.py                # UNTOUCHED — matplotlib CLI
+├── data.py / pdf2csv.py / ... # UNTOUCHED
+├── desktop/                   # Rust rewrite — PRIMARY, will be the only version
+│   ├── src/                   # React frontend (Dashboard + Data view + dark mode)
+│   ├── src-tauri/
+│   │   ├── dkb-core/          # Rust library (shared between Tauri + web server)
+│   │   ├── src/               # Tauri binary entry (main.rs + lib.rs)
+│   │   ├── src-web/           # Web server binary (axum, for browser dev mode)
+│   │   └── Cargo.toml
+│   ├── package.json
+│   └── vite.config.ts
+├── web-dashboard/              # BACKUP — old FastAPI + React for browser use
+│   ├── src/                   # React (copied from desktop/, frozen)
+│   ├── package.json
+│   └── ...                    # references api.py from root
+├── categories.toml            # UNTOUCHED
+├── pipeline.toml              # UNTOUCHED
+└── tests/                     # UNTOUCHED
+```
+
+`desktop/` will eventually be the only folder. `web-dashboard/` is a transitional backup that can be deleted once the Rust version is stable.
+
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│                  Tauri App                        │
-│  ┌──────────────────────┐  ┌──────────────────┐  │
-│  │   Rust Backend       │  │  React Frontend   │  │
-│  │                      │  │                   │  │
-│  │  dkb-core crate      │  │  Dashboard view   │  │
-│  │  ┌────────────────┐  │  │  Data view        │  │
-│  │  │ csv_reader     │──┼──│  (cat. editor +   │  │
-│  │  │ pdf_extractor  │  │  │   tables)         │  │
-│  │  │ categorizer    │  │  │                   │  │
-│  │  │ aggregator     │  │  │  Dark mode toggle │  │
-│  │  │ config         │  │  │  File import      │  │
-│  │  └────────────────┘  │  └──────────────────┘  │
-│  │         │            │         │               │
-│  │  Tauri commands      │  invoke() / events     │
-│  │  (get_data,          │                         │
-│  │   save_categories,   │                         │
-│  │   import_file)       │                         │
-│  └──────────────────────┘  └──────────────────────┘
-│                           │
-│  User config dir:         │
-│  ~/.config/dkb-finanz/    │
-│  ├── categories.toml      │
-│  └── csv/                 │
-│      └── (imported files) │
-└──────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                   desktop/ (Rust)                         │
+│                                                           │
+│  ┌─────────────────────────┐  ┌──────────────────────┐   │
+│  │   Rust Backend           │  │  React Frontend       │   │
+│  │                          │  │                       │   │
+│  │  dkb-core crate          │  │  Dashboard view       │   │
+│  │  ┌──────────────────┐   │  │  Data view            │   │
+│  │  │ csv_reader       │───┼──│  (cat. editor +       │   │
+│  │  │ pdf_extractor    │   │  │   tables)             │   │
+│  │  │ categorizer      │   │  │                       │   │
+│  │  │ aggregator       │   │  │  Dark mode toggle     │   │
+│  │  │ config           │   │  │  File import          │   │
+│  │  └──────────────────┘   │  └──────────────────────┘   │
+│  │         │               │         │                    │
+│  │  ┌──────┴──────┐        │         │                    │
+│  │  │ Tauri cmds   │        │  invoke() / fetch()         │
+│  │  │ Web server   │        │  (browser mode uses HTTP)   │
+│  │  └──────────────┘        │                             │
+│  └─────────────────────────┘  └──────────────────────────┘
+│                                                           │
+│  User config dir:                                         │
+│  ~/.config/dkb-finanz/                                    │
+│  ├── categories.toml                                      │
+│  ├── pipeline.toml                                        │
+│  ├── csv/           ← imported CSVs                       │
+│  └── pdf/           ← imported PDFs                       │
+└──────────────────────────────────────────────────────────┘
 ```
+
+## Modes of operation
+
+| Mode | Command | Backend | Frontend talks to |
+|---|---|---|---|
+| Desktop (native) | `cd desktop && npm run tauri dev` | Rust (Tauri invoke) | `invoke()` API |
+| Desktop (packaged) | `cargo tauri build` | Rust (embedded) | `invoke()` API |
+| Browser dev | `cd desktop && npm run dev` + `cargo run --bin web-server` | Rust (axum HTTP) | `fetch()` to localhost |
+| Old web (backup) | `cd web-dashboard && npm run dev` + `.venv/bin/python api.py` | Python (FastAPI HTTP) | `fetch()` to localhost |
 
 ## Sub-projects
 
 ### 1. dkb-core (Rust library crate)
 
-A single library crate at `desktop/src-tauri/dkb-core/` with five modules:
+A shared library crate at `desktop/src-tauri/dkb-core/` with five modules:
 
 #### `csv_reader`
 - Parse DKB semicolon-separated CSV files with German number format (`1.234,56`)
@@ -88,7 +127,7 @@ A single library crate at `desktop/src-tauri/dkb-core/` with five modules:
 - On first launch, copy default `categories.toml` and `pipeline.toml` from the app bundle
 - Load/save `categories.toml` (serde + toml crate)
 - Load `pipeline.toml` settings
-- Create `csv/` subdirectory for imported files
+- Create `csv/` and `pdf/` subdirectories for imported files
 
 ### 2. Tauri Backend
 
@@ -140,7 +179,7 @@ Data structures in the Tauri command outputs must match the current JSON shape f
 - First launch: copy bundled `categories.toml` and `pipeline.toml` to user config dir
 - Subsequent launches: read from user config dir
 - Category edits write back to user config dir only
-- Imported CSV/PDF files go into user config dir's `csv/` subdirectory
+- Imported CSV files go into `csv/`, PDF files into `pdf/` subdirectory
 - The bundled defaults serve as fallback if user deletes their config
 
 ### 5. Packaging
@@ -160,6 +199,10 @@ cargo tauri build --target x86_64-apple-darwin
 cargo tauri build --target x86_64-pc-windows-msvc
 # → .msi
 ```
+
+### web-dashboard (backup)
+
+The `web-dashboard/` directory is a copy of the old `desktop/` frontend, kept for browser-only use during the Rust rewrite. It is created at the start and rarely updated. Once the Rust version is stable with browser dev mode, `web-dashboard/` will be deleted.
 
 ## Implementation Order
 
