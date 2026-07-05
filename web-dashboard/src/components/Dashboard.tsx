@@ -95,7 +95,7 @@ export default function Dashboard() {
   if (!data) return null;
 
   return (
-    <div className="app-body">
+    <div className="app-layout">
       <Sidebar
         categories={data.categories}
         filter={filter}

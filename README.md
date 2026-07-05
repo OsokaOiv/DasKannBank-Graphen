@@ -7,10 +7,11 @@
 
 [![CI](https://img.shields.io/github/actions/workflow/status/OsokaOiv/DasKannBank-Graphen/ci.yml?branch=main&label=CI&logo=github)](https://github.com/OsokaOiv/DasKannBank-Graphen/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10--3.13-blue?logo=python)](https://www.python.org)
+[![Rust](https://img.shields.io/badge/Rust-1.85+-orange?logo=rust)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](docs/usage.md#windows-befehle-ohne-make)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.58-FF4B4B?logo=streamlit)](https://streamlit.io)
-[![Tests](https://img.shields.io/badge/Tests-34%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Python%20tests-34%20passed-brightgreen)](tests/)
+[![Rust tests](https://img.shields.io/badge/Rust%20tests-23%20passed-brightgreen)](desktop/src-tauri/dkb-core/)
 
 <br>
 
@@ -18,7 +19,7 @@
 
 <br>
 
-Pipeline to analyse DKB bank statement CSVs and visualise expenses – as static <b>matplotlib</b> charts (PNG), an interactive <b>Streamlit</b> dashboard with <b>Plotly</b>, or a <b>Tauri</b> desktop app (<b>React + FastAPI</b>).
+Pipeline to analyse DKB bank statement CSVs and visualise expenses – as static <b>matplotlib</b> charts (PNG), an interactive <b>Streamlit</b> dashboard with <b>Plotly</b>, or a <b>Tauri</b> desktop app (<b>React + Rust</b>) with native file dialogs and no Python dependency.
 
 </div>
 
@@ -77,8 +78,8 @@ streamlit run app.py
 make test
 ```
 
-29 unit tests covering core logic – `parse_amount`, `parse_date`, `assign_categories`, `transaction_hash`, `load_config`, `prepare_income`, `prepare_profit_loss`, `filter_expenses`, `filter_income`.  
-CI runs them on every push across Python 3.10–3.13 on Linux, macOS, and Windows.
+34 Python unit tests + 23 Rust unit tests covering core logic (`parse_amount`, `parse_date`, `categorization`, aggregation, deduplication, PDF text extraction).  
+CI runs Python tests on every push across Python 3.10–3.13 on Linux, macOS, and Windows (Rust CI planned).
 
 ---
 

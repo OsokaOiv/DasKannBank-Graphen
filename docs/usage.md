@@ -108,27 +108,25 @@ make app
 - **Transaktionen**: Rohdaten (Datum, Empfänger, Betrag, Kategorie)
 - **Nicht kategorisiert**: Ausgaben in "Sonstige" mit Empfänger + Zweck
 
-## Desktop-App (Tauri + React)
+## Desktop-App (Tauri + React + Rust)
 
-Die neue Desktop-App ersetzt das Streamlit-Dashboard durch eine native Tauri-Anwendung mit React-Frontend und Python-FastAPI-Backend.
+Die Desktop-App ist eine native Tauri-Anwendung mit React-Frontend und Rust-Backend (`dkb-core`).
+Kein Python oder FastAPI mehr nötig – die gesamte Datenverarbeitung läft in Rust.
 
 ### Voraussetzungen
 
 - Node.js 20+
 - Rust-Toolchain (siehe `docs/development.md`)
-- Python `.venv` mit Abhängigkeiten (`make install`)
+- Systemdependencies für Tauri (WebKit2GTK, etc. – siehe [Tauri-Doku](https://v2.tauri.app/start/prerequisites/))
 
-### Starten (Entwicklung)
+### Starten (Entwicklung – Browser-Modus)
 
 ```bash
-# 1. API-Server starten (ein Terminal)
-.venv/bin/python api.py
-# Läuft auf http://127.0.0.1:8765
-
-# 2. Frontend starten (zweites Terminal)
 cd desktop
 npm run dev
 # Öffnet http://localhost:5173 im Browser
+# Nutzt den Rust-Webserver unter http://127.0.0.1:8765
+# (wird automatisch von Vite gestartet)
 ```
 
 Oder mit Tauri-Fenster:
@@ -150,24 +148,20 @@ npm run tauri build
 
 | Element | Beschreibung |
 |---|---|
-| Sidebar – Zeitraum | Datumsauswahl Von/Bis zur Filterung |
-| Sidebar – Kategorien | Multi-Select zum Filtern nach Kategorien |
-| Diagrammauswahl | Dropdown zum Wechseln zwischen 8 Diagrammtypen |
-| Tabelle | Sortierbare Transaktionsliste (Klick auf Spaltenkopf) |
-| Nicht kategorisiert | Aufklappbare Liste der "Sonstige"-Transaktionen |
+| Tab "Dashboard" | Diagramme + Kennzahlen |
+| Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
+| 🌙/☀️ | Dark-Mode-Umschalter |
 
-### Diagrammtypen (Desktop)
+### Datenverzeichnis
 
-| Name | Beschreibung |
+Die App speichert Konfiguration und importierte Dateien unter `~/.config/dkb-finanz/`:
+
+| Pfad | Inhalt |
 |---|---|
-| Ausgaben – Kreis (Gesamt) | Alle Ausgaben im Pie-Chart |
-| Ausgaben – Linie (Monat) | Liniendiagramm – monatlicher Verlauf |
-| Ausgaben – Balken (Monat) | Gestapelte Balken pro Monat nach Kategorie |
-| Einnahmen – Balken (Monat) | Einnahmen pro Monat, gestapelt nach Sender |
-| Einnahmen – Linie (Monat) | Einnahmen pro Monat, Linien nach Sender |
-| Einnahmen – Kreis | Einnahmen nach Sender im Pie-Chart |
-| G/V – Saldo (Monat) | Gewinn/Verlust (Saldo) pro Monat |
-| G/V – Vergleich (Monat) | Einnahmen vs. Ausgaben pro Monat |
+| `categories.toml` | Kategorien mit Keywords (editierbar im Tab "Daten") |
+| `pipeline.toml` | Pipeline-Konfiguration |
+| `csv/` | Importierte CSV-Kontoauszüge |
+| `pdf/` | Importierte PDF-Kontoauszüge |
 
 ## PDF → CSV
 

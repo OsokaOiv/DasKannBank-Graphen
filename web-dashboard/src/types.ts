@@ -31,11 +31,6 @@ export interface DashboardData {
   categories: string[];
 }
 
-export interface CategoryEntry {
-  name: string;
-  keywords: string[];
-}
-
 export interface FilterState {
   dateFrom: string;
   dateTo: string;
