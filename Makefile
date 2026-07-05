@@ -27,7 +27,7 @@ $(VENV):
 	python3 -m venv $(VENV)
 
 install: $(VENV)
-	$(PIP) install matplotlib pandas pdfplumber pytest streamlit plotly
+	$(PIP) install matplotlib pandas pdfplumber pytest streamlit plotly fastapi uvicorn[standard]
 
 run: $(VENV)
 	$(PYTHON) pipeline.py
