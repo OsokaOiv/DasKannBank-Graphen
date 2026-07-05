@@ -1,7 +1,6 @@
 from pathlib import Path
 import pandas as pd
-
-from pipeline import (
+from data import (
     parse_amount,
     parse_date,
     assign_categories,
@@ -111,8 +110,8 @@ def test_transaction_hash_differs():
 
 
 def test_load_config_defaults():
-    import pipeline
-    pipeline.CONFIG_FILE = Path("nonexistent.toml")
+    import data as data_module
+    data_module.CONFIG_FILE = Path("nonexistent.toml")
     cfg = load_config()
     assert cfg["display"]["dpi"] == 150
     assert cfg["charts"]["monthly_bar"]["bar_width_days"] == 20

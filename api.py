@@ -33,7 +33,9 @@ def _convert_dates(records, date_fields=None):
     for rec in records:
         for field in date_fields:
             if field in rec and rec[field] is not None:
-                if hasattr(rec[field], "isoformat"):
+                if hasattr(rec[field], "strftime"):
+                    rec[field] = rec[field].strftime("%Y-%m-%d")
+                elif hasattr(rec[field], "isoformat"):
                     rec[field] = rec[field].isoformat()
     return records
 
@@ -80,3 +82,8 @@ async def upload_csv(file: UploadFile):
     content = await file.read()
     (csv_dir / file.filename).write_bytes(content)
     return {"saved": file.filename}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8765)

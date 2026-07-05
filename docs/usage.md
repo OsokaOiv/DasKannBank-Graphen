@@ -68,7 +68,7 @@ Diagramme landen als PNGs in `graphs/`:
 | `einnahmen_pro_jahr.png` | Einnahmen pro Jahr (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
 | `gewinne_pro_monat.png` | Gewinn/Verlust-Balken pro Monat |
 
-## Dashboard (interaktiv)
+## Dashboard (interaktiv – Streamlit)
 
 ```bash
 make app
@@ -108,6 +108,67 @@ make app
 - **Transaktionen**: Rohdaten (Datum, Empfänger, Betrag, Kategorie)
 - **Nicht kategorisiert**: Ausgaben in "Sonstige" mit Empfänger + Zweck
 
+## Desktop-App (Tauri + React)
+
+Die neue Desktop-App ersetzt das Streamlit-Dashboard durch eine native Tauri-Anwendung mit React-Frontend und Python-FastAPI-Backend.
+
+### Voraussetzungen
+
+- Node.js 20+
+- Rust-Toolchain (siehe `docs/development.md`)
+- Python `.venv` mit Abhängigkeiten (`make install`)
+
+### Starten (Entwicklung)
+
+```bash
+# 1. API-Server starten (ein Terminal)
+.venv/bin/python api.py
+# Läuft auf http://127.0.0.1:8765
+
+# 2. Frontend starten (zweites Terminal)
+cd desktop
+npm run dev
+# Öffnet http://localhost:5173 im Browser
+```
+
+Oder mit Tauri-Fenster:
+
+```bash
+cd desktop
+npm run tauri dev
+```
+
+### Bauen
+
+```bash
+cd desktop
+npm run tauri build
+# Erzeugt Installer in desktop/src-tauri/target/release/bundle/
+```
+
+### Bedienung
+
+| Element | Beschreibung |
+|---|---|
+| Sidebar – Zeitraum | Datumsauswahl Von/Bis zur Filterung |
+| Sidebar – Kategorien | Multi-Select zum Filtern nach Kategorien |
+| Diagrammauswahl | Dropdown zum Wechseln zwischen 8 Diagrammtypen |
+| Tabelle | Sortierbare Transaktionsliste (Klick auf Spaltenkopf) |
+| Nicht kategorisiert | Aufklappbare Liste der "Sonstige"-Transaktionen |
+
+### Diagrammtypen (Desktop)
+
+| Name | Beschreibung |
+|---|---|
+| Ausgaben – Kreis (Gesamt) | Alle Ausgaben im Pie-Chart |
+| Ausgaben – Linie (Monat) | Liniendiagramm – monatlicher Verlauf |
+| Ausgaben – Balken (Monat) | Gestapelte Balken pro Monat nach Kategorie |
+| Einnahmen – Balken (Monat) | Einnahmen pro Monat, gestapelt nach Sender |
+| Einnahmen – Linie (Monat) | Einnahmen pro Monat, Linien nach Sender |
+| Einnahmen – Kreis | Einnahmen nach Sender im Pie-Chart |
+| G/V – Saldo (Monat) | Gewinn/Verlust (Saldo) pro Monat |
+| G/V – Vergleich (Monat) | Einnahmen vs. Ausgaben pro Monat |
+
 ## PDF → CSV
 
 DKB-PDF-Kontoauszüge in `pdf/` ablegen, dann:
@@ -130,7 +191,7 @@ Speichert Roh-Text als `.txt`-Datei zum Prüfen der Erkennung.
 make test
 ```
 
-Führt alle Unit-Tests aus (derzeit 29 Tests: 22 pipeline + 7 app).
+Führt alle Unit-Tests aus (derzeit 34 Tests: 22 pipeline + 12 app).
 
 ## Aufräumen
 

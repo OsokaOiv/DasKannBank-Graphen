@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](docs/usage.md#windows-befehle-ohne-make)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.58-FF4B4B?logo=streamlit)](https://streamlit.io)
-[![Tests](https://img.shields.io/badge/Tests-29%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-34%20passed-brightgreen)](tests/)
 
 <br>
 
@@ -18,7 +18,7 @@
 
 <br>
 
-Pipeline to analyse DKB bank statement CSVs and visualise expenses – either as static <b>matplotlib</b> charts (PNG) or through an interactive <b>Streamlit</b> dashboard with <b>Plotly</b>.
+Pipeline to analyse DKB bank statement CSVs and visualise expenses – as static <b>matplotlib</b> charts (PNG), an interactive <b>Streamlit</b> dashboard with <b>Plotly</b>, or a <b>Tauri</b> desktop app (<b>React + FastAPI</b>).
 
 </div>
 
