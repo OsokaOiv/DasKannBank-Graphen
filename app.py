@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import os
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -29,6 +31,20 @@ def _filter_by_months(df: pd.DataFrame, selected_months: list[str]) -> pd.DataFr
     if selected_months and "Monat_Label" in df.columns:
         return df[df["Monat_Label"].isin(selected_months)]
     return df
+
+
+def _save_uploaded_files(uploaded_files: list) -> tuple[int, list[str]]:
+    os.makedirs("csv", exist_ok=True)
+    saved = 0
+    errors = []
+    for f in uploaded_files:
+        try:
+            with open(os.path.join("csv", f.name), "wb") as out:
+                out.write(f.getbuffer())
+            saved += 1
+        except Exception as e:
+            errors.append(str(e))
+    return saved, errors
 
 
 def filter_expenses(
@@ -423,6 +439,31 @@ def main() -> None:
         return
 
     st.sidebar.header("Steuerung")
+
+    with st.sidebar.popover("📁 CSV hochladen"):
+        uploaded_files = st.file_uploader(
+            "DKB-CSV-Dateien hier ablegen",
+            type="csv",
+            accept_multiple_files=True,
+            key="csv_uploader",
+        )
+        if uploaded_files:
+            st.caption(f"{len(uploaded_files)} Datei(en) ausgewählt")
+            for f in uploaded_files:
+                st.text(f"• {f.name}")
+        if st.button("Anwenden", type="primary", use_container_width=True):
+            if not uploaded_files:
+                st.warning("Bitte wähle mindestens eine CSV-Datei aus.")
+            else:
+                saved, errors = _save_uploaded_files(uploaded_files)
+                if saved > 0:
+                    st.success(f"{saved} Datei(en) gespeichert nach csv/.")
+                for err in errors:
+                    st.error(f"Fehler: {err}")
+                if saved > 0:
+                    st.cache_data.clear()
+                    st.rerun()
+
     chart_type, selected_months, selected_categories = render_sidebar(expenses)
 
     filtered_expenses = filter_expenses(expenses, selected_months, selected_categories)
