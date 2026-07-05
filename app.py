@@ -34,7 +34,10 @@ def _filter_by_months(df: pd.DataFrame, selected_months: list[str]) -> pd.DataFr
 
 
 def _save_uploaded_files(uploaded_files: list) -> tuple[int, list[str]]:
-    os.makedirs("csv", exist_ok=True)
+    try:
+        os.makedirs("csv", exist_ok=True)
+    except Exception as e:
+        return 0, [str(e)]
     saved = 0
     errors = []
     for f in uploaded_files:

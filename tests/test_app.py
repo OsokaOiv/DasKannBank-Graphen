@@ -1,5 +1,7 @@
+import io
+import os
 import pandas as pd
-from app import filter_expenses, filter_income
+from app import filter_expenses, filter_income, _save_uploaded_files
 
 
 def test_filter_expenses_by_category():
@@ -70,3 +72,40 @@ def test_filter_income_empty():
     })
     result = filter_income(df, ["Feb 2025"])
     assert result.empty
+
+
+class _FakeUploadedFile:
+    """Duck-typed mock of streamlit's UploadedFile that only provides what _save_uploaded_files uses."""
+    def __init__(self, name: str, data: bytes):
+        self.name = name
+        self._buf = io.BytesIO(data)
+
+    def getbuffer(self):
+        return self._buf.getbuffer()
+
+
+def test_save_uploaded_files_success(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    fake = _FakeUploadedFile("test.csv", b"a,b,c\n1,2,3")
+    saved, errors = _save_uploaded_files([fake])
+    assert saved == 1
+    assert errors == []
+    assert os.path.exists("csv/test.csv")
+    with open("csv/test.csv") as f:
+        assert f.read() == "a,b,c\n1,2,3"
+
+
+def test_save_uploaded_files_error(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with open("csv", "w") as f:
+        f.write("not a directory")
+    fake = _FakeUploadedFile("test.csv", b"data")
+    saved, errors = _save_uploaded_files([fake])
+    assert saved == 0
+    assert len(errors) >= 1
+
+
+def test_save_uploaded_files_empty():
+    saved, errors = _save_uploaded_files([])
+    assert saved == 0
+    assert errors == []
