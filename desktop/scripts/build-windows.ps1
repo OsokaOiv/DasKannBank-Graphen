@@ -123,8 +123,20 @@ Set-Location "$RepoRoot\desktop"
 if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
 Write-Host "  -> npm install done." -ForegroundColor Green
 
-# ---- 5. tauri build ----
-Write-Host "[5/5] Building Tauri app..." -ForegroundColor Yellow
+# ---- 5. generate icons (if missing) ----
+$iconIco = "$RepoRoot\desktop\src-tauri\icons\icon.ico"
+$iconPng = "$RepoRoot\desktop\src-tauri\icons\icon.png"
+if (-not (Test-Path $iconIco) -and (Test-Path $iconPng)) {
+    Write-Host "[5/5] Generating icon.ico from icon.png..." -ForegroundColor Yellow
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        python -c "from PIL import Image; Image.open('$iconPng').save('$iconIco', format='ICO', sizes=[(32,32),(256,256)])"
+    } elseif (Get-Command magick -ErrorAction SilentlyContinue) {
+        magick convert "$iconPng" -define icon:auto-resize=256,32 "$iconIco"
+    }
+}
+
+# ---- 6. tauri build ----
+Write-Host "[6/6] Building Tauri app..." -ForegroundColor Yellow
 $bundleArgs = @()
 if ($Msi) { $bundleArgs += "--bundles"; $bundleArgs += "msi" }
 if ($Nsis) { $bundleArgs += "--bundles"; $bundleArgs += "nsis" }
