@@ -12,7 +12,6 @@ use dkb_core::aggregator::build_dashboard_data;
 use dkb_core::categorizer::Categorizer;
 use dkb_core::config;
 use dkb_core::csv_reader;
-use dkb_core::pdf_extractor;
 
 struct AppState {
     categories: Mutex<Categorizer>,
@@ -22,13 +21,8 @@ async fn get_data_handler(
     axum::extract::State(state): axum::extract::State<std::sync::Arc<AppState>>,
 ) -> impl IntoResponse {
     let cat = state.categories.lock().unwrap();
-    let csv_transactions = csv_reader::read_all_csvs(&config::csv_dir());
-    let pdf_transactions = pdf_extractor::process_pdfs(&config::pdf_dir());
-
-    let mut all = csv_transactions;
-    all.extend(pdf_transactions);
-
-    let data = build_dashboard_data(&all, &cat);
+    let transactions = csv_reader::read_all_csvs(&config::csv_dir());
+    let data = build_dashboard_data(&transactions, &cat);
     Json(data)
 }
 

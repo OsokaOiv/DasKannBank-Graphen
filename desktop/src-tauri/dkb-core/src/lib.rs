@@ -2,7 +2,7 @@ pub mod config;
 pub mod csv_reader;
 pub mod categorizer;
 pub mod aggregator;
-pub mod pdf_extractor;
+pub mod pdf_to_csv;
 pub mod util;
 
 use serde::{Deserialize, Serialize};

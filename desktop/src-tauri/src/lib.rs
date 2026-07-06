@@ -4,7 +4,7 @@ use dkb_core::aggregator::build_dashboard_data;
 use dkb_core::categorizer::Categorizer;
 use dkb_core::config;
 use dkb_core::csv_reader;
-use dkb_core::pdf_extractor;
+use dkb_core::pdf_to_csv;
 use dkb_core::{CategoryEntry, DashboardData};
 
 struct AppState {
@@ -14,13 +14,8 @@ struct AppState {
 #[tauri::command]
 fn get_data(state: tauri::State<Mutex<AppState>>) -> Result<DashboardData, String> {
     let cat = state.lock().map_err(|e| e.to_string())?;
-    let csv_transactions = csv_reader::read_all_csvs(&config::csv_dir());
-    let pdf_transactions = pdf_extractor::process_pdfs(&config::pdf_dir());
-
-    let mut all = csv_transactions;
-    all.extend(pdf_transactions);
-
-    Ok(build_dashboard_data(&all, &cat.categories))
+    let transactions = csv_reader::read_all_csvs(&config::csv_dir());
+    Ok(build_dashboard_data(&transactions, &cat.categories))
 }
 
 #[tauri::command]
@@ -52,18 +47,23 @@ fn import_file(path: String) -> Result<String, String> {
         .unwrap_or("")
         .to_lowercase();
 
-    let dest_dir = match ext.as_str() {
-        "csv" => config::csv_dir(),
-        "pdf" => config::pdf_dir(),
-        _ => return Err("Nur CSV- und PDF-Dateien unterstützt".to_string()),
-    };
-
     let file_name = src.file_name()
         .ok_or_else(|| "Ungültiger Dateiname".to_string())?;
-    let dest = dest_dir.join(file_name);
 
-    std::fs::copy(&src, &dest).map_err(|e| e.to_string())?;
-    Ok(format!("{} importiert", file_name.to_string_lossy()))
+    match ext.as_str() {
+        "csv" => {
+            let dest = config::csv_dir().join(file_name);
+            std::fs::copy(&src, &dest).map_err(|e| e.to_string())?;
+            Ok(format!("{} importiert", file_name.to_string_lossy()))
+        }
+        "pdf" => {
+            let dest = config::pdf_dir().join(file_name);
+            std::fs::copy(&src, &dest).map_err(|e| e.to_string())?;
+            pdf_to_csv::convert_pdf(&dest)?;
+            Ok(format!("{} konvertiert und importiert", file_name.to_string_lossy()))
+        }
+        _ => Err("Nur CSV- und PDF-Dateien unterstützt".to_string()),
+    }
 }
 
 #[tauri::command]
