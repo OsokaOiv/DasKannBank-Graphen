@@ -117,6 +117,7 @@ function buildPieFigure(
 }
 
 function buildBarTraces(
+  months: string[],
   labels: string[],
   groups: string[],
   data: Record<string, Record<string, number>>,
@@ -126,13 +127,14 @@ function buildBarTraces(
     type: "bar" as const,
     name: g,
     x: labels,
-    y: labels.map((m) => data[m][g] || 0),
+    y: months.map((m) => data[m][g] || 0),
     marker: { color: colors[i % colors.length] },
     hovertemplate: `%{x}<br>${g}: %{y:.2f} ${EURO}<extra></extra>`,
   } as Data));
 }
 
 function buildScatterTraces(
+  months: string[],
   labels: string[],
   groups: string[],
   data: Record<string, Record<string, number>>,
@@ -143,7 +145,7 @@ function buildScatterTraces(
     mode: "lines+markers" as const,
     name: g,
     x: labels,
-    y: labels.map((m) => data[m][g] || 0),
+    y: months.map((m) => data[m][g] || 0),
     line: { color: colors[i % colors.length], width: 2 },
     marker: { color: colors[i % colors.length], size: 6 },
     hovertemplate: `%{x}<br>${g}: %{y:.2f} ${EURO}<extra></extra>`,
@@ -264,7 +266,7 @@ function buildMonthlyLine(expenses: ExpenseRecord[]): ChartFigure {
 function buildMonthlyStacked(expenses: ExpenseRecord[]): ChartFigure {
   const { months, categories, data } = groupMonthlyByCategory(expenses);
   const labels = months.map(fmtMonat);
-  const traces = buildBarTraces(labels, categories, data, COLORS_CATEGORY);
+  const traces = buildBarTraces(months, labels, categories, data, COLORS_CATEGORY);
 
   return {
     data: traces,
@@ -281,7 +283,7 @@ function buildMonthlyStacked(expenses: ExpenseRecord[]): ChartFigure {
 function buildIncomeBar(income: IncomeRecord[]): ChartFigure {
   const { months, senders, data } = groupMonthlyBySender(income);
   const labels = months.map(fmtMonat);
-  const traces = buildBarTraces(labels, senders, data, COLORS_SENDER);
+  const traces = buildBarTraces(months, labels, senders, data, COLORS_SENDER);
 
   return {
     data: traces,
@@ -298,7 +300,7 @@ function buildIncomeBar(income: IncomeRecord[]): ChartFigure {
 function buildIncomeLine(income: IncomeRecord[]): ChartFigure {
   const { months, senders, data } = groupMonthlyBySender(income);
   const labels = months.map(fmtMonat);
-  const traces = buildScatterTraces(labels, senders, data, COLORS_SENDER);
+  const traces = buildScatterTraces(months, labels, senders, data, COLORS_SENDER);
 
   return {
     data: traces,
