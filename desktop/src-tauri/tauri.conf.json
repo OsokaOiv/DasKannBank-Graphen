@@ -1,7 +1,7 @@
 {
   "productName": "DKB Dashboard",
   "version": "0.1.0",
-  "identifier": "com.dkb-dashboard.app",
+  "identifier": "com.dkb-dashboard",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
