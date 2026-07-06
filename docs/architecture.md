@@ -25,17 +25,21 @@ pdf_to_csv.rs ──► *.csv ──► dkb-core (Rust)
 6. **Aggregation**: `aggregator` berechnet Ausgaben, Einnahmen, Gewinn/Verlust
 7. **Ausgabe**: JSON-Strukturen via Tauri IPC an React, Visualisierung mit Plotly (Dark-Mode-Unterstützung via `paper_bgcolor`/`plot_bgcolor`/`font.color`)
 
-### Python-Pipeline (Legacy)
+### Python-Prototyp (legacy/)
 
 ```
-pdf/           csv/             pipeline.toml       categories.toml
-  │              │                   │                    │
-  ▼              ▼                   ▼                    ▼
-pdf2csv.py ──► *.csv ──► pipeline.py ──► graphs/*.png
-                              │
-                              ▼
-                          app.py (Streamlit + Plotly)
+legacy/
+├── pdf/           csv/             pipeline.toml       categories.toml
+│   │              │                   │                    │
+│   ▼              ▼                   ▼                    ▼
+│   pdf2csv.py ──► *.csv ──► pipeline.py ──► graphs/*.png
+│                              │
+│                              ▼
+│                          app.py (Streamlit + Plotly)
 ```
+
+Der Python-Prototyp ist unverändert in `legacy/` abgelegt und alle 29 Tests laufen weiterhin.
+Er wird nicht mehr aktiv weiterentwickelt, dient aber als Referenz-Implementierung.
 
 ## Module (dkb-core – Rust)
 

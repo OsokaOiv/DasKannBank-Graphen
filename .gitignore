@@ -1,6 +1,23 @@
-.venv/
-graphs/
+# Python prototype (legacy/)
+legacy/.venv/
+legacy/graphs/
+**/__pycache__/
+legacy/.pytest_cache/
+legacy/.streamlit/
+
+# Shared data (kept at root)
 csv/
 pdf/
-__pycache__/
-.pytest_cache/
+
+# Build artifacts
+desktop/node_modules/
+desktop/src-tauri/target/
+desktop/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -16,32 +16,30 @@ Kernregeln:
 
 ```
 .
-├── .venv/                ← Virtuelle Python-Umgebung (gitignored)
-├── csv/                  ← DKB-CSV-Exporte (gitignored)
-├── pdf/                  ← DKB-PDF-Kontoauszüge (gitignored)
-├── graphs/               ← Generierte PNG-Diagramme (gitignored)
-├── docs/                 ← Dokumentation (Markdown)
-├── tests/
-│   ├── test_pipeline.py  ← 22 Tests
-│   └── test_app.py       ← 7 Tests
-├── desktop/
-│   ├── src/              ← React-Frontend (TypeScript)
+├── desktop/              ★ Hauptprodukt – Tauri + React + Rust
+│   ├── src/
 │   │   ├── components/   ← UI-Komponenten (ChartView, DataTables, etc.)
-│   │   ├── themes.ts     ← Theme-Definitionen (Standard, Terminal Pro, Neon Finance, Cyber Dashboard)
+│   │   ├── themes.ts     ← Theme-Definitionen (4 Themes)
 │   │   ├── api.ts        ← Tauri IPC-Calls
 │   │   └── __tests__/    ← 7 Frontend-Tests (Vitest)
-│   └── src-tauri/
-│       ├── src/          ← Tauri-Backend (Rust)
-│       └── dkb-core/
-│           └── src/      ← 6 Module (config, csv_reader, categorizer,
-│                              aggregator, util, pdf_to_csv) — 35 Tests
-├── app.py                ← Streamlit-Dashboard
-├── pipeline.py           ← CLI-Backend (Daten + matplotlib)
-├── pdf2csv.py            ← PDF-Konverter (Python-Legacy)
-├── categories.toml       ← Keyword-basierte Kategorien
-├── pipeline.toml         ← Diagramm-Konfiguration
+│   ├── src-tauri/
+│   │   ├── src/          ← Tauri-Backend (Rust)
+│   │   └── dkb-core/
+│   │       └── src/      ← 6 Module (config, csv_reader, categorizer,
+│   │                          aggregator, util, pdf_to_csv) — 35 Tests
+│   ├── scripts/build-windows.ps1
+│   └── package.json
+├── legacy/               ← Python-Prototyp (Referenz, unverändert)
+│   ├── app.py / pipeline.py / pdf2csv.py / api.py / data.py / constants.py
+│   ├── requirements.txt
+│   ├── tests/            ← 29 Python-Tests
+│   └── .venv/            ← Python venv (gitignored)
+├── csv/                  ← DKB-CSV-Exporte (gitignored)
+├── pdf/                  ← DKB-PDF-Kontoauszüge (gitignored)
+├── docs/                 ← Dokumentation (Markdown)
+├── categories.toml       ← Keyword-basierte Kategorien (geteilt)
 ├── code-principles.md    ← Clean Code Regeln
-├── Makefile              ← Build/Run/Test-Befehle
+├── Makefile              ← Build-System (desktop-first)
 └── README.md             ← Projekt-Übersicht
 ```
 

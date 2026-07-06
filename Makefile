@@ -1,119 +1,95 @@
-VENV = .venv
-PYTHON = $(VENV)/bin/python3
-PIP = $(VENV)/bin/pip
 CARGO = cargo
 NPM = npm
 
-.PHONY: help install install-rust install-frontend \
-        run run-total run-yearly run-monthly run-monthly-pies \
-        run-income run-income-pie run-profit \
-        pdf2csv app api \
-        desktop-install desktop-dev desktop-build \
-        test test-rust test-frontend test-python \
-        check clean
+.PHONY: help build run test check \
+        test-rust test-frontend \
+        legacy-setup legacy-run legacy-pdf2csv legacy-app legacy-api legacy-test \
+        clean
 
 help:
-	@echo "Verfügbare Befehle:"
+	@echo "╔═══════════════════════════════════════╗"
+	@echo "║     DKB Finanz — Build System         ║"
+	@echo "╚═══════════════════════════════════════╝"
 	@echo ""
-	@echo "  Python (Legacy):"
-	@echo "    make install           — venv + Abhängigkeiten installieren"
-	@echo "    make run               — Alle Diagramme erstellen"
-	@echo "    make pdf2csv           — PDFs aus pdf/ in CSV konvertieren"
-	@echo "    make app               — Streamlit-Dashboard starten"
-	@echo "    make api               — FastAPI-Backend starten (localhost:8765)"
+	@echo "★ Desktop App (Tauri + React + Rust):"
+	@echo "    make build        — Produktionbuild (Tauri)"
+	@echo "    make run          — Entwicklung (Tauri dev)"
+	@echo "    make test         — Rust + Frontend Tests"
+	@echo "    make test-rust    — Nur Rust (cargo test)"
+	@echo "    make test-frontend— Nur Frontend (vitest)"
+	@echo "    make check        — cargo check (Rust, keine Tests)"
 	@echo ""
-	@echo "  Rust + Frontend (Desktop):"
-	@echo "    make install-rust      — Rust-Toolchain prüfen"
-	@echo "    make install-frontend  — npm-Abhängigkeiten installieren"
-	@echo "    make desktop-dev       — Web-Server + Vite dev server"
-	@echo "    make desktop-build     — Tauri-Produktionbuild"
+	@echo "○ Python-Prototyp (legacy/):"
+	@echo "    make legacy-setup    — venv + Abhängigkeiten"
+	@echo "    make legacy-run      — Alle Diagramme (pipeline.py)"
+	@echo "    make legacy-pdf2csv  — PDFs → CSV konvertieren"
+	@echo "    make legacy-app      — Streamlit-Dashboard starten"
+	@echo "    make legacy-api      — FastAPI-Backend (localhost:8765)"
+	@echo "    make legacy-test     — Python-Tests (pytest)"
 	@echo ""
-	@echo "  Tests:"
-	@echo "    make test              — Alle Tests (Rust + Frontend + Python)"
-	@echo "    make test-rust         — Nur Rust-Tests (cargo test)"
-	@echo "    make test-frontend     — Nur Frontend-Tests (vitest)"
-	@echo "    make test-python       — Nur Python-Tests (pytest)"
-	@echo ""
-	@echo "  Sonstiges:"
-	@echo "    make check             — cargo check (Rust)"
-	@echo "    make clean             — venv, node_modules löschen"
+	@echo "◇ Sonstiges:"
+	@echo "    make clean           — node_modules, target löschen"
+	@echo "    make help            — Diese Hilfe"
 
-# ---- Python (Legacy) ----
-$(VENV):
-	python3 -m venv $(VENV)
+# ============================================================
+# ★ Desktop App (Tauri + React + Rust) — das Hauptprodukt
+# ============================================================
 
-install: $(VENV)
-	$(PIP) install matplotlib pandas pdfplumber pytest streamlit plotly fastapi uvicorn[standard]
-
-run: $(VENV)
-	$(PYTHON) pipeline.py
-
-run-total: $(VENV)
-	$(PYTHON) pipeline.py total
-
-run-yearly: $(VENV)
-	$(PYTHON) pipeline.py yearly
-
-run-monthly: $(VENV)
-	$(PYTHON) pipeline.py monthly
-
-run-monthly-pies: $(VENV)
-	$(PYTHON) pipeline.py monthly-pies
-
-run-income: $(VENV)
-	$(PYTHON) pipeline.py income
-
-run-income-pie: $(VENV)
-	$(PYTHON) pipeline.py income-pie
-
-run-profit: $(VENV)
-	$(PYTHON) pipeline.py profit
-
-pdf2csv: $(VENV)
-	$(PYTHON) pdf2csv.py
-
-app: $(VENV)
-	$(VENV)/bin/streamlit run app.py
-
-api: $(VENV)
-	$(PYTHON) api.py
-
-# ---- Rust + Frontend (Desktop) ----
-install-rust:
-	rustup target add x86_64-unknown-linux-gnu 2>/dev/null || true
-	rustup target add aarch64-apple-darwin 2>/dev/null || true
-
-install-frontend:
-	cd desktop && $(NPM) install
-
-desktop-install: install-frontend
-
-desktop-dev:
-	cd desktop/src-tauri && cargo run --bin web-server &
-	cd desktop && $(NPM) run dev
-
-desktop-build:
+build:
 	cd desktop && $(NPM) run tauri build
 
-# ---- Tests ----
+run:
+	cd desktop && $(NPM) run tauri dev
+
+test: test-rust test-frontend
+
 test-rust:
 	cd desktop/src-tauri && $(CARGO) test -p dkb-core
 
 test-frontend:
 	cd desktop && $(NPM) test
 
-test-python: $(VENV)
-	$(PYTHON) -m pytest tests/ -v
-
-test: test-rust test-frontend
-
-# ---- Checks ----
 check:
 	cd desktop/src-tauri && $(CARGO) check
 
-# ---- Clean ----
+# ============================================================
+# ○ Python-Prototyp (legacy/) — historische Referenz
+# ============================================================
+
+LEGACY_VENV = legacy/.venv
+LEGACY_PYTHON = $(LEGACY_VENV)/bin/python3
+LEGACY_PIP = $(LEGACY_VENV)/bin/pip
+
+$(LEGACY_VENV):
+	python3 -m venv $(LEGACY_VENV)
+
+legacy-setup: $(LEGACY_VENV)
+	$(LEGACY_PIP) install matplotlib pandas pdfplumber pytest streamlit plotly fastapi uvicorn[standard]
+	@echo ""
+	@echo "Python-Prototyp einsatzbereit. Verwende 'make legacy-run' usw."
+
+legacy-run: $(LEGACY_VENV)
+	$(LEGACY_PYTHON) legacy/pipeline.py
+
+legacy-pdf2csv: $(LEGACY_VENV)
+	$(LEGACY_PYTHON) legacy/pdf2csv.py
+
+legacy-app: $(LEGACY_VENV)
+	$(LEGACY_VENV)/bin/streamlit run legacy/app.py
+
+legacy-api: $(LEGACY_VENV)
+	$(LEGACY_PYTHON) legacy/api.py
+
+legacy-test: $(LEGACY_VENV)
+	$(LEGACY_PYTHON) -m pytest legacy/tests/ -v
+
+# ============================================================
+# ◇ Aufräumen
+# ============================================================
+
 clean:
-	rm -rf graphs/*.png
-	rm -rf $(VENV)
 	rm -rf desktop/node_modules
 	rm -rf desktop/src-tauri/target
+	rm -rf desktop/dist
+	@echo "Desktop-Build-Artefakte entfernt."
+	@echo "Python-Prototyp: legacy/.venv manuell löschen falls gewünscht."

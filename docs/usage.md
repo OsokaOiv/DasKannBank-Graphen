@@ -1,117 +1,9 @@
 # Nutzung
 
-## Setup
-
-### Linux / macOS
-
-```bash
-make install
-```
-
-Erzeugt eine virtuelle Umgebung (`.venv`) und installiert alle Abhängigkeiten.
-
-### Windows
-
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Ohne `make` (nicht vorinstalliert) kommt `requirements.txt` zum Einsatz – die enthält dieselben Pakete.
-
-## CLI (statische Diagramme)
-
-### Alle Diagramme
-
-```bash
-make run
-```
-
-### Selektiv
-
-```bash
-make run-total          # Nur Gesamt-Kreisdiagramm
-make run-yearly         # Nur Kreisdiagramme pro Jahr
-make run-monthly        # Nur Linien- + Balkendiagramm
-make run-monthly-pies   # Nur Kreisdiagramme pro Monat
-make run-income         # Nur Einnahmen-Diagramme
-make run-income-pie     # Nur Einnahmen-Kreisdiagramm
-make run-profit         # Nur Gewinn/Verlust-Diagramm
-```
-
-Oder direkt mit Python:
-
-```bash
-python3 pipeline.py                 # alle (inkl. Einnahmen + Gewinn/Verlust)
-python3 pipeline.py total           # nur Gesamt
-python3 pipeline.py yearly          # nur Jahr
-python3 pipeline.py monthly         # nur Monatslinie + Balken
-python3 pipeline.py monthly-pies    # nur Monatskreise
-python3 pipeline.py income          # nur Einnahmen
-python3 pipeline.py income-pie      # nur Einnahmen-Kreis
-python3 pipeline.py profit          # nur Gewinn/Verlust
-```
-
-### Ausgabe
-
-Diagramme landen als PNGs in `graphs/`:
-
-| Datei | Inhalt |
-|---|---|
-| `ausgaben_nach_kategorie.png` | Gesamt-Kreisdiagramm |
-| `ausgaben_YYYY.png` | Kreisdiagramm pro Jahr |
-| `ausgaben_YYYY-MM.png` | Kreisdiagramm pro Monat |
-| `ausgaben_linien_pro_monat.png` | Liniendiagramm (monatlich) |
-| `ausgaben_gestapelt_pro_monat.png` | Gestapeltes Balkendiagramm (monatlich) |
-| `einnahmen_pro_monat.png` | Einnahmen pro Monat (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
-| `einnahmen_pro_jahr.png` | Einnahmen pro Jahr (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
-| `gewinne_pro_monat.png` | Gewinn/Verlust-Balken pro Monat |
-
-## Dashboard (interaktiv – Streamlit)
-
-```bash
-make app
-```
-
-Öffnet Streamlit-Dashboard im Browser (Standard: `http://localhost:8501`).
-
-### Steuerung
-
-| Element | Beschreibung |
-|---|---|
-| Sidebar – Monate | "Alle" oder einzelne Monate auswählen |
-| Sidebar – Kategorien | "Alle" oder einzelne Kategorien filtern |
-| Sidebar – Diagrammtyp | Umschalten zwischen 10 Diagrammarten |
-| Diagramm – Hover | Zeigt Betrag + Prozent |
-| Diagramm – Legende | Klick zum Ein-/Ausblenden einzelner Kategorien |
-
-### Diagrammtypen
-
-| Typ | Beschreibung |
-|---|---|
-| Kreis (Gesamt) | Alle Ausgaben in einem Pie-Chart |
-| Kreis (Jahr) | Pie-Chart für ein ausgewähltes Jahr |
-| Kreis (Monat) | Pie-Chart für einen ausgewählten Monat |
-| Linien (Monat) | Liniendiagramm – Verlauf pro Kategorie |
-| Gestapelte Balken (Monat) | Gestapelte Balken pro Monat |
-| Einnahmen (Balken) | Einnahmen pro Monat (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
-| Einnahmen (Linie) | Einnahmen-Verlauf pro Monat (eine Linie pro Zahlungspflichtige*m) |
-| Einnahmen (Jahr) | Einnahmen pro Jahr (gestapelt, farbcodiert nach Zahlungspflichtige*r) |
-| Einnahmen (Kreis) | Einnahmen nach Sender in einem Kreisdiagramm |
-| Gewinn/Verlust (Monat) | Differenz Einnahmen − Ausgaben pro Monat |
-
-### Tabs unter dem Diagramm
-
-- **Nach Kategorie**: Summen pro Kategorie
-- **Monatlich**: Pivot-Tabelle Monat × Kategorie
-- **Transaktionen**: Rohdaten (Datum, Empfänger, Betrag, Kategorie)
-- **Nicht kategorisiert**: Ausgaben in "Sonstige" mit Empfänger + Zweck
-
-## Desktop-App (Tauri + React + Rust)
+## Desktop-App (Tauri + React + Rust) ★
 
 Die Desktop-App ist eine native Tauri-Anwendung mit React-Frontend und Rust-Backend (`dkb-core`).
-Kein Python oder FastAPI mehr nötig – die gesamte Datenverarbeitung läuft in Rust.
+Kein Python oder Streamlit nötig – die gesamte Datenverarbeitung läft in Rust.
 
 ### Voraussetzungen
 
@@ -119,41 +11,37 @@ Kein Python oder FastAPI mehr nötig – die gesamte Datenverarbeitung läuft in
 - Rust-Toolchain (siehe `docs/development.md`)
 - Systemdependencies für Tauri (WebKit2GTK, etc. – siehe [Tauri-Doku](https://v2.tauri.app/start/prerequisites/))
 
-### Starten (Entwicklung – Browser-Modus)
+### Build (produktionsfertiger Installer)
 
 ```bash
-cd desktop
-npm run dev
-# Öffnet http://localhost:5173 im Browser
-# Nutzt den Rust-Webserver unter http://127.0.0.1:8765
-# (wird automatisch von Vite gestartet)
-```
-
-Oder mit Tauri-Fenster:
-
-```bash
-cd desktop
-npm run tauri dev
-```
-
-### Bauen
-
-```bash
-cd desktop
-npm run tauri build
+make build
 # Erzeugt Installer in desktop/src-tauri/target/release/bundle/
 ```
 
-Unter Windows wird `powershell -NoProfile -Command` zur PATH-Auflösung genutzt (konfiguriert in `tauri.conf.json`).
+Unter Windows wird `desktop/scripts/build-windows.ps1` empfohlen (auto-detektiert VS Build Tools, Rust, Node.js).
+
+### Entwicklung (mit Hot-Reload)
+
+```bash
+make run
+# Öffnet Tauri-Fenster mit Hot-Reload
+```
+
+Oder im Browser (ohne Tauri-Fenster):
+
+```bash
+cd desktop && npm run dev
+# Öffnet http://localhost:5173
+```
 
 ### Bedienung
 
 | Element | Beschreibung |
 |---|---|
-| Tab "Dashboard" | Diagramme + Kennzahlen |
+| Tab "Dashboard" | Diagramme + Kennzahlen (8 Chart-Typen) |
 | Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
 | Design-Select | Themenauswahl: Standard (Hell/Dunkel), Terminal Pro (Cyan), Neon Finance (Smaragd), Cyber Dashboard (Bernstein) |
-| 🌙/☀️ | Dark-Mode-Umschalter (nur im Standard-Theme) – setzt Plotly-Farben via CSS Custom Properties |
+| 🌙/☀️ | Dark-Mode-Umschalter (nur im Standard-Theme) |
 
 ### Datenverzeichnis
 
@@ -162,77 +50,63 @@ Die App speichert Konfiguration und importierte Dateien unter `~/.config/dkb-fin
 | Pfad | Inhalt |
 |---|---|
 | `categories.toml` | Kategorien mit Keywords (editierbar im Tab "Daten") |
-| `pipeline.toml` | Pipeline-Konfiguration |
 | `csv/` | Importierte CSV-Kontoauszüge |
 | `pdf/` | Importierte PDF-Kontoauszüge (werden beim Import automatisch konvertiert) |
 
-## PDF → CSV
-
-### Desktop-App (empfohlen)
-
-PDF-Kontoauszüge werden über den Tab "Daten" → "Datei importieren" geladen.
-Die PDF wird automatisch mit dem Rust-`pdf_to_csv`-Modul in CSV konvertiert und direkt ins `csv/`-Verzeichnis geschrieben.
-Kein manueller Konvertierungsschritt nötig.
-
-### Python-Legacy (Kommandozeile)
-
-DKB-PDF-Kontoauszüge in `pdf/` ablegen, dann:
+### Tests
 
 ```bash
-make pdf2csv
+make test              # Rust + Frontend
+make test-rust         # Nur Rust (35 Tests)
+make test-frontend     # Nur Frontend (7 Tests)
 ```
 
-Erzeugt für jede PDF eine CSV in `csv/`. Mit Debug-Output:
+### Windows-Build-Script
+
+```powershell
+.\desktop\scripts\build-windows.ps1
+```
+
+Auto-installiert Rust + Node.js falls nötig, lädt vcvars64.bat, erzeugt `.exe` + NSIS-Setup.
+
+---
+
+## Python-Prototyp (legacy/)
+
+Die ursprüngliche Python-Implementierung lebt im Ordner `legacy/` als Referenz.
+Sie wird nicht mehr aktiv weiterentwickelt, aber alle 29 Tests laufen weiterhin.
+
+### Setup
 
 ```bash
-python3 pdf2csv.py --debug
+make legacy-setup
 ```
 
-Speichert Roh-Text als `.txt`-Datei zum Prüfen der Erkennung.
-
-## Tests
-
-### Tauri Desktop App
+### CLI (statische Diagramme)
 
 ```bash
-cd desktop && cargo test      # 35 Rust-Tests
-cd desktop && npm test        # 7 Frontend-Tests (Vitest)
+make legacy-run                # Alle Diagramme → legacy/graphs/*.png
+make legacy-pdf2csv            # PDFs → CSV konvertieren
 ```
 
-### Python-Pipeline (Legacy)
+### Dashboard (Streamlit)
 
 ```bash
-make test
+make legacy-app
+# Öffnet http://localhost:8501
 ```
 
-Führt alle Python Unit-Tests aus (29 Tests: 22 pipeline + 7 app).
-
-## Aufräumen
+### Tests
 
 ```bash
-make clean
+make legacy-test               # 29 Python-Tests
 ```
 
-Löscht `graphs/*.png` und die virtuelle Umgebung `.venv/`.
+### Direkte Python-Befehle (Windows ohne make)
 
-## Windows: Befehle ohne `make`
-
-Alle Python-Befehle funktionieren identisch – nur der Aufruf unterscheidet sich:
-
-| Aufgabe | Linux/macOS (make) | Windows (PowerShell) |
-|---|---|---|
-| Setup | `make install` | `.venv\Scripts\activate` + `pip install -r requirements.txt` |
-| Pipeline (alle) | `make run` | `.venv\Scripts\activate` + `python pipeline.py` |
-| Pipeline (total) | `make run-total` | `.venv\Scripts\activate` + `python pipeline.py total` |
-| Pipeline (income) | `make run-income` | `.venv\Scripts\activate` + `python pipeline.py income` |
-| Pipeline (income-pie) | `make run-income-pie` | `.venv\Scripts\activate` + `python pipeline.py income-pie` |
-| Pipeline (profit) | `make run-profit` | `.venv\Scripts\activate` + `python pipeline.py profit` |
-| Dashboard | `make app` | `.venv\Scripts\activate` + `streamlit run app.py` |
-| PDF → CSV (Legacy) | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |
-| Tests (Legacy) | `make test` | `.venv\Scripts\activate` + `python -m pytest tests/ -v` |
-| Rust-Tests | `cargo test` | `cargo test` (in `desktop/`) |
-| Frontend-Tests | `npm test` | `npm test` (in `desktop/`) |
-| Aufräumen | `make clean` | `Remove-Item graphs\*.png -Force; Remove-Item .venv -Recurse -Force` |
-
-**Hinweis:** Das venv muss vor jedem Befehl aktiviert werden (`.venv\Scripts\activate`).
-Wer `make` auf Windows nutzen möchte, installiert es z. B. via Chocolatey: `choco install make`.
+```powershell
+legacy\.venv\Scripts\activate
+python legacy/pipeline.py
+streamlit run legacy/app.py
+python -m pytest legacy/tests/ -v
+```

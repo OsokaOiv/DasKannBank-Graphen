@@ -5,8 +5,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "powershell -NoProfile -Command \"npm run dev\"",
-    "beforeBuildCommand": "powershell -NoProfile -Command \"npm run build\""
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
     "windows": [

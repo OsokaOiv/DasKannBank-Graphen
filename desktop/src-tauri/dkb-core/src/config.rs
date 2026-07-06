@@ -30,10 +30,6 @@ pub fn categories_path() -> PathBuf {
     config_dir().join("categories.toml")
 }
 
-pub fn pipeline_config_path() -> PathBuf {
-    config_dir().join("pipeline.toml")
-}
-
 pub fn ensure_dirs() -> std::io::Result<()> {
     fs::create_dir_all(config_dir())?;
     fs::create_dir_all(csv_dir())?;
@@ -47,12 +43,6 @@ pub fn copy_defaults_if_missing(bundle_dir: &PathBuf) -> std::io::Result<()> {
         let src = bundle_dir.join("categories.toml");
         if src.exists() {
             fs::copy(&src, categories_path())?;
-        }
-    }
-    if !pipeline_config_path().exists() {
-        let src = bundle_dir.join("pipeline.toml");
-        if src.exists() {
-            fs::copy(&src, pipeline_config_path())?;
         }
     }
     Ok(())
