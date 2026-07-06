@@ -60,7 +60,7 @@ export default function DataTables({ expenses }: Props) {
                   Datum{arrow("Datum")}
                 </th>
                 <th {...sortProps("Zahlungsempfänger*in")}>
-                  Empf\u00e4nger{arrow("Zahlungsempfänger*in")}
+                  Empfänger{arrow("Zahlungsempfänger*in")}
                 </th>
                 <th>Verwendungszweck</th>
                 <th {...sortProps("Kategorie")}>

@@ -66,7 +66,6 @@ pub fn read_csv<P: AsRef<Path>>(path: P) -> Vec<Transaction> {
             headers.iter().position(|h| h == name)
                 .and_then(|i| record.get(i))
                 .map(|s| s.trim_matches('"').trim().to_string())
-                .filter(|s| !s.is_empty())
         };
 
         let betrag_raw = get("Betrag (€)").or_else(|| get("Betrag"));

@@ -12,6 +12,7 @@ interface ChartFigure {
 }
 
 interface Props {
+  dark?: boolean;
   expenses: ExpenseRecord[];
   income: IncomeRecord[];
   profitLoss: ProfitLossRecord[];
@@ -43,7 +44,7 @@ const CHART_TYPES: ChartType[] = [
   "G/V \u2013 Vergleich (Monat)",
 ];
 
-export default function ChartView({ expenses, income, profitLoss }: Props) {
+export default function ChartView({ dark, expenses, income, profitLoss }: Props) {
   const [chartType, setChartType] = useState<ChartType>("Ausgaben \u2013 Kreis (Gesamt)");
 
   const figure: ChartFigure = useMemo(() => {
@@ -84,7 +85,9 @@ export default function ChartView({ expenses, income, profitLoss }: Props) {
         layout={{
           ...figure.layout,
           autosize: true,
-          font: { family: "-apple-system, BlinkMacSystemFont, sans-serif" },
+          paper_bgcolor: dark ? "#1e1e1e" : "#fff",
+          plot_bgcolor: dark ? "#1e1e1e" : "#fff",
+          font: { color: dark ? "#e0e0e0" : "#333", family: "-apple-system, BlinkMacSystemFont, sans-serif" },
           margin: { t: 40, r: 20, b: 60, l: 60 },
         }}
         config={{ responsive: true, displayModeBar: false }}

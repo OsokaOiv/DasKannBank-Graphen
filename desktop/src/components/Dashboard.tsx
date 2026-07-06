@@ -7,7 +7,11 @@ import ChartView from "./ChartView";
 import DataTables from "./DataTables";
 import Uncategorized from "./Uncategorized";
 
-export default function Dashboard() {
+interface DashboardProps {
+  dark?: boolean;
+}
+
+export default function Dashboard({ dark }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +109,7 @@ export default function Dashboard() {
         <h1>DKB Finanz-Dashboard</h1>
         <SummaryCards expenses={filteredExpenses} income={filteredIncome} />
         <ChartView
+          dark={dark}
           expenses={filteredExpenses}
           income={filteredIncome}
           profitLoss={filteredProfitLoss}

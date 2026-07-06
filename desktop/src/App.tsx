@@ -42,7 +42,7 @@ function App() {
           {dark ? "☀️" : "🌙"}
         </button>
       </nav>
-      {view === "dashboard" ? <Dashboard /> : <DataView />}
+      {view === "dashboard" ? <Dashboard dark={dark} /> : <DataView />}
     </div>
   );
 }
