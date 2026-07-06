@@ -152,7 +152,8 @@ Unter Windows wird `powershell -NoProfile -Command` zur PATH-Auflösung genutzt 
 |---|---|
 | Tab "Dashboard" | Diagramme + Kennzahlen |
 | Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
-| 🌙/☀️ | Dark-Mode-Umschalter (setzt Plotly `paper_bgcolor`/`plot_bgcolor`/`font.color`) |
+| Design-Select | Themenauswahl: Standard (Hell/Dunkel), Terminal Pro (Cyan), Neon Finance (Smaragd), Cyber Dashboard (Bernstein) |
+| 🌙/☀️ | Dark-Mode-Umschalter (nur im Standard-Theme) – setzt Plotly-Farben via CSS Custom Properties |
 
 ### Datenverzeichnis
 
@@ -195,7 +196,7 @@ Speichert Roh-Text als `.txt`-Datei zum Prüfen der Erkennung.
 
 ```bash
 cd desktop && cargo test      # 35 Rust-Tests
-cd desktop && npm test        # 5 Frontend-Tests (Vitest)
+cd desktop && npm test        # 7 Frontend-Tests (Vitest)
 ```
 
 ### Python-Pipeline (Legacy)

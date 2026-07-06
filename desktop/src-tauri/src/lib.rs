@@ -13,9 +13,9 @@ struct AppState {
 
 #[tauri::command]
 fn get_data(state: tauri::State<Mutex<AppState>>) -> Result<DashboardData, String> {
-    let cat = state.lock().map_err(|e| e.to_string())?;
+    let app = state.lock().map_err(|e| e.to_string())?;
     let transactions = csv_reader::read_all_csvs(&config::csv_dir());
-    Ok(build_dashboard_data(&transactions, &cat.categories))
+    Ok(build_dashboard_data(&transactions, &app.categories))
 }
 
 #[tauri::command]
@@ -30,13 +30,15 @@ fn save_categories(
 ) -> Result<(), String> {
     config::save_category_entries(&entries).map_err(|e| e.to_string())?;
 
-    let mut cat = state.lock().map_err(|e| e.to_string())?;
-    cat.categories = Categorizer::from_toml(config::categories_path());
+    let mut app = state.lock().map_err(|e| e.to_string())?;
+    app.categories = Categorizer::from_toml(config::categories_path());
     Ok(())
 }
 
 #[tauri::command]
 fn import_file(path: String) -> Result<String, String> {
+    config::ensure_dirs().map_err(|e| format!("Konfigurationsverzeichnis erstellen fehlgeschlagen: {}", e))?;
+
     let src = std::path::PathBuf::from(&path);
     if !src.exists() {
         return Err("Datei nicht gefunden".to_string());

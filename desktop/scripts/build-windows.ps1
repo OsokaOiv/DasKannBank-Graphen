@@ -82,7 +82,7 @@ if ($vsPath) {
             Select-Object -First 1 -ExpandProperty FullName
     }
     if ($vcvars -and (Test-Path $vcvars)) {
-        Write-Host "[1/5] Loading MSVC environment from $vcvars" -ForegroundColor Green
+        Write-Host "[1/6] Loading MSVC environment from $vcvars" -ForegroundColor Green
         cmd /c "`"$vcvars`" && set" | ForEach-Object {
             if ($_ -match '^(\w+)=(.*)') {
                 Set-Item -Path "env:$($Matches[1])" -Value $Matches[2]
@@ -117,7 +117,7 @@ $null = Ensure-Tool "Node.js" "node" "OpenJS.NodeJS" "https://nodejs.org/dist/v2
 Write-Host "  -> $(node --version), npm $(cmd /c "npm --version 2>&1")" -ForegroundColor DarkGray
 
 # ---- 4. npm install ----
-Write-Host "[4/5] Installing npm dependencies..." -ForegroundColor Yellow
+Write-Host "[4/6] Installing npm dependencies..." -ForegroundColor Yellow
 Set-Location "$RepoRoot\desktop"
 & "npm.cmd" install
 if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
@@ -127,7 +127,7 @@ Write-Host "  -> npm install done." -ForegroundColor Green
 $iconIco = "$RepoRoot\desktop\src-tauri\icons\icon.ico"
 $iconPng = "$RepoRoot\desktop\src-tauri\icons\icon.png"
 if (-not (Test-Path $iconIco) -and (Test-Path $iconPng)) {
-    Write-Host "[5/5] Generating icon.ico from icon.png..." -ForegroundColor Yellow
+    Write-Host "[5/6] Generating icon.ico from icon.png..." -ForegroundColor Yellow
     if (Get-Command python -ErrorAction SilentlyContinue) {
         python -c "from PIL import Image; Image.open('$iconPng').save('$iconIco', format='ICO', sizes=[(32,32),(256,256)])"
     } elseif (Get-Command magick -ErrorAction SilentlyContinue) {

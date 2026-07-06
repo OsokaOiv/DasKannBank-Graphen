@@ -46,14 +46,28 @@ describe("App", () => {
 
   it("has a dark mode toggle", async () => {
     render(<App />);
-    const toggle = await screen.findByRole("button", { name: /🌙|☀️/i });
+    const toggle = await screen.findByRole("button", { name: /helles design|dunkles design/i });
     expect(toggle).toBeInTheDocument();
   });
 
   it("applies dark class when toggling dark mode", async () => {
     render(<App />);
-    const toggle = await screen.findByRole("button", { name: /🌙|☀️/i });
+    const toggle = await screen.findByRole("button", { name: /helles design|dunkles design/i });
     fireEvent.click(toggle);
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+  });
+
+  it("has a theme selector", async () => {
+    render(<App />);
+    const select = await screen.findByRole("combobox", { name: /design wählen/i });
+    expect(select).toBeInTheDocument();
+  });
+
+  it("switches theme and applies correct class", async () => {
+    render(<App />);
+    const select = await screen.findByRole("combobox", { name: /design wählen/i }) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "terminal-pro" } });
+    expect(document.documentElement.classList.contains("theme-terminal-pro")).toBe(true);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 });

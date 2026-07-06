@@ -16,6 +16,7 @@
   --accent: #2d7ee7;
   --positive: #16a34a;
   --negative: #dc2626;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
   --shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
@@ -31,7 +32,59 @@
   --accent: #3b8bf0;
   --positive: #22c55e;
   --negative: #ef4444;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
   --shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* ===== Theme: Terminal Pro ===== */
+.theme-terminal-pro.dark {
+  --bg: #0a0e14;
+  --bg-card: #0f1620;
+  --text: #b2d8ff;
+  --text-secondary: #4a6a8a;
+  --border: #1a2a3e;
+  --nav-bg: #0c1320;
+  --nav-active: #00d4aa;
+  --hover-light: #111e30;
+  --accent: #00d4aa;
+  --positive: #00d4aa;
+  --negative: #ff3355;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+  --shadow: 0 0 20px rgba(0, 212, 170, 0.06);
+}
+
+/* ===== Theme: Neon Finance ===== */
+.theme-neon-finance.dark {
+  --bg: #0b0f17;
+  --bg-card: #121926;
+  --text: #e2edf7;
+  --text-secondary: #6b7d96;
+  --border: #1e2a3e;
+  --nav-bg: #0f1625;
+  --nav-active: #00e676;
+  --hover-light: #162033;
+  --accent: #00e676;
+  --positive: #00e676;
+  --negative: #ff1744;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+  --shadow: 0 0 20px rgba(0, 230, 118, 0.06);
+}
+
+/* ===== Theme: Cyber Dashboard ===== */
+.theme-cyber-dashboard.dark {
+  --bg: #06090e;
+  --bg-card: #0d1117;
+  --text: #ffd54f;
+  --text-secondary: #7a6a4a;
+  --border: #2c1f0e;
+  --nav-bg: #0a0d14;
+  --nav-active: #ff9100;
+  --hover-light: #141810;
+  --accent: #ff9100;
+  --positive: #76ff03;
+  --negative: #ff1744;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+  --shadow: 0 0 20px rgba(255, 145, 0, 0.06);
 }
 
 html, body, #root {
@@ -42,7 +95,6 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---- Navigation ---- */
 .app-nav {
   display: flex;
   align-items: center;
@@ -95,7 +147,29 @@ html, body, #root {
   opacity: 1;
 }
 
-/* ---- Layout ---- */
+.theme-select {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.theme-select:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.dark-indicator {
+  padding: 4px 10px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
 .app-layout {
   display: flex;
   flex-direction: column;
@@ -123,7 +197,6 @@ html, body, #root {
   letter-spacing: -0.01em;
 }
 
-/* ---- Sidebar ---- */
 .sidebar {
   width: 240px;
   min-width: 240px;
@@ -185,7 +258,6 @@ html, body, #root {
   color: var(--text-secondary);
 }
 
-/* ---- Summary Cards ---- */
 .summary-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -214,6 +286,7 @@ html, body, #root {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+  font-family: var(--font-mono);
 }
 
 .summary-card .value.positive {
@@ -224,7 +297,6 @@ html, body, #root {
   color: var(--negative);
 }
 
-/* ---- Chart ---- */
 .chart-area {
   background: var(--bg-card);
   border-radius: 6px;
@@ -255,7 +327,6 @@ html, body, #root {
   color: var(--text);
 }
 
-/* ---- Tables ---- */
 .table-section {
   background: var(--bg-card);
   border-radius: 6px;
@@ -293,6 +364,7 @@ html, body, #root {
   padding: 5px 10px;
   border-bottom: 1px solid var(--border);
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .table-section tr:hover {
@@ -304,7 +376,6 @@ html, body, #root {
   font-size: 10px;
 }
 
-/* ---- Uncategorized ---- */
 .uncategorized-toggle {
   width: 100%;
   background: none;
@@ -338,7 +409,6 @@ html, body, #root {
   padding: 10px 14px;
 }
 
-/* ---- Data View ---- */
 .data-actions {
   display: flex;
   align-items: center;
@@ -460,7 +530,6 @@ html, body, #root {
   color: var(--text-secondary);
 }
 
-/* ---- Loading / Error ---- */
 .loading {
   display: flex;
   justify-content: center;

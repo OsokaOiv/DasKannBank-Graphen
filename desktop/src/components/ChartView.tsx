@@ -18,9 +18,136 @@ interface Props {
   profitLoss: ProfitLossRecord[];
 }
 
+const COLOR_EXPENSE = "#e53935";
+const COLOR_INCOME = "#43a047";
+const COLOR_POSITIVE = "#2e7d32";
+const COLOR_NEGATIVE = "#c62828";
+const COLORS_CATEGORY = [
+  "#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa",
+  "#00acc1", "#f4511e", "#3949ab", "#c0ca33", "#6d4c41",
+];
+const COLORS_SENDER = ["#43a047", "#1e88e5", "#fb8c00", "#8e24aa", "#e53935", "#00acc1"];
+const LAYOUT_MARGIN = { t: 40, r: 20, b: 60, l: 60 };
+const CHART_HEIGHT = 420;
+const EURO = "\u20ac";
+
+const HOVER_TEMPLATE = "%{x}<br>%{y:.2f} " + EURO + "<extra></extra>";
+const HOVER_PIE = "%{label}<br>%{value:.2f} " + EURO + " (%{percent})<extra></extra>";
+
 function normalizeSender(raw: string | undefined | null): string {
   if (!raw || raw === "0") return "Unbekannt";
   return raw.trim().replace(/\s+/g, " ").toUpperCase();
+}
+
+function fmtMonat(iso: string): string {
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("de-DE", { month: "short", year: "numeric" });
+}
+
+function groupByCategory(records: ExpenseRecord[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const r of records) {
+    out[r.Kategorie] = (out[r.Kategorie] || 0) + r.Betrag;
+  }
+  return out;
+}
+
+function groupBySender(records: IncomeRecord[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const r of records) {
+    const sender = normalizeSender(r["Zahlungspflichtige*r"]);
+    out[sender] = (out[sender] || 0) + r.Betrag;
+  }
+  return out;
+}
+
+function groupMonthlyByCategory(records: ExpenseRecord[]): {
+  months: string[];
+  categories: string[];
+  data: Record<string, Record<string, number>>;
+} {
+  const byMonth: Record<string, Record<string, number>> = {};
+  for (const r of records) {
+    if (!byMonth[r.Monat]) byMonth[r.Monat] = {};
+    byMonth[r.Monat][r.Kategorie] = (byMonth[r.Monat][r.Kategorie] || 0) + r.Betrag;
+  }
+  const months = Object.keys(byMonth).sort();
+  const categories = [...new Set(records.map((r) => r.Kategorie))];
+  return { months, categories, data: byMonth };
+}
+
+function groupMonthlyBySender(records: IncomeRecord[]): {
+  months: string[];
+  senders: string[];
+  data: Record<string, Record<string, number>>;
+} {
+  const byMonth: Record<string, Record<string, number>> = {};
+  const senders = new Set<string>();
+  for (const r of records) {
+    const sender = normalizeSender(r["Zahlungspflichtige*r"]);
+    senders.add(sender);
+    if (!byMonth[r.Monat]) byMonth[r.Monat] = {};
+    byMonth[r.Monat][sender] = (byMonth[r.Monat][sender] || 0) + r.Betrag;
+  }
+  const months = Object.keys(byMonth).sort();
+  return { months, senders: [...senders], data: byMonth };
+}
+
+function buildPieFigure(
+  labels: string[],
+  values: number[],
+  total: number,
+  title: string,
+): ChartFigure {
+  return {
+    data: [
+      {
+        type: "pie" as const,
+        labels,
+        values,
+        textinfo: "label+percent" as const,
+        textposition: "outside" as const,
+        hovertemplate: HOVER_PIE,
+      } as Data,
+    ],
+    layout: {
+      title: { text: `${title} (Gesamt: ${total.toFixed(2)} ${EURO})` },
+    },
+  };
+}
+
+function buildBarTraces(
+  labels: string[],
+  groups: string[],
+  data: Record<string, Record<string, number>>,
+  colors: string[],
+): Data[] {
+  return groups.map((g, i) => ({
+    type: "bar" as const,
+    name: g,
+    x: labels,
+    y: labels.map((m) => data[m][g] || 0),
+    marker: { color: colors[i % colors.length] },
+    hovertemplate: `%{x}<br>${g}: %{y:.2f} ${EURO}<extra></extra>`,
+  } as Data));
+}
+
+function buildScatterTraces(
+  labels: string[],
+  groups: string[],
+  data: Record<string, Record<string, number>>,
+  colors: string[],
+): Data[] {
+  return groups.map((g, i) => ({
+    type: "scatter" as const,
+    mode: "lines+markers" as const,
+    name: g,
+    x: labels,
+    y: labels.map((m) => data[m][g] || 0),
+    line: { color: colors[i % colors.length], width: 2 },
+    marker: { color: colors[i % colors.length], size: 6 },
+    hovertemplate: `%{x}<br>${g}: %{y:.2f} ${EURO}<extra></extra>`,
+  } as Data));
 }
 
 type ChartType =
@@ -85,13 +212,13 @@ export default function ChartView({ dark, expenses, income, profitLoss }: Props)
         layout={{
           ...figure.layout,
           autosize: true,
-          paper_bgcolor: dark ? "#1e1e1e" : "#fff",
-          plot_bgcolor: dark ? "#1e1e1e" : "#fff",
-          font: { color: dark ? "#e0e0e0" : "#333", family: "-apple-system, BlinkMacSystemFont, sans-serif" },
-          margin: { t: 40, r: 20, b: 60, l: 60 },
+          paper_bgcolor: dark ? "#1a1f25" : "#fff",
+          plot_bgcolor: dark ? "#1a1f25" : "#fff",
+          font: { color: dark ? "#e2e8f0" : "#1a202c", family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif" },
+          margin: LAYOUT_MARGIN,
         }}
         config={{ responsive: true, displayModeBar: false }}
-        style={{ width: "100%", height: 420 }}
+        style={{ width: "100%", height: CHART_HEIGHT }}
         useResizeHandler
       />
     </div>
@@ -99,43 +226,18 @@ export default function ChartView({ dark, expenses, income, profitLoss }: Props)
 }
 
 function buildTotalPie(expenses: ExpenseRecord[]): ChartFigure {
-  const grouped: Record<string, number> = {};
-  for (const e of expenses) {
-    grouped[e.Kategorie] = (grouped[e.Kategorie] || 0) + e.Betrag;
-  }
+  const grouped = groupByCategory(expenses);
   const labels = Object.keys(grouped);
   const values = Object.values(grouped);
   const total = values.reduce((a, b) => a + b, 0);
-
-  return {
-    data: [
-      {
-        type: "pie" as const,
-        labels,
-        values,
-        textinfo: "label+percent" as const,
-        textposition: "outside" as const,
-        hovertemplate: "%{label}<br>%{value:.2f} \u20ac (%{percent})<extra></extra>",
-      } as Data,
-    ],
-    layout: {
-      title: { text: `Ausgaben nach Kategorie (Gesamt: ${total.toFixed(2)} \u20ac)` },
-    },
-  };
-}
-
-function fmtMonth(iso: string): string {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("de-DE", { month: "short", year: "numeric" });
+  return buildPieFigure(labels, values, total, "Ausgaben nach Kategorie");
 }
 
 function buildMonthlyLine(expenses: ExpenseRecord[]): ChartFigure {
   const grouped: Record<string, number> = {};
-  for (const e of expenses) {
-    grouped[e.Monat] = (grouped[e.Monat] || 0) + e.Betrag;
-  }
+  for (const e of expenses) grouped[e.Monat] = (grouped[e.Monat] || 0) + e.Betrag;
   const months = Object.keys(grouped).sort();
-  const labels = months.map(fmtMonth);
+  const labels = months.map(fmtMonat);
   const values = months.map((m) => grouped[m]);
 
   return {
@@ -145,43 +247,24 @@ function buildMonthlyLine(expenses: ExpenseRecord[]): ChartFigure {
         mode: "lines+markers" as const,
         x: labels,
         y: values,
-        line: { color: "#e53935", width: 2 },
-        marker: { color: "#e53935", size: 6 },
-        hovertemplate: "%{x}<br>%{y:.2f} \u20ac<extra></extra>",
+        line: { color: COLOR_EXPENSE, width: 2 },
+        marker: { color: COLOR_EXPENSE, size: 6 },
+        hovertemplate: HOVER_TEMPLATE,
         name: "Ausgaben",
       } as Data,
     ],
     layout: {
       title: { text: "Monatliche Ausgaben" },
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Betrag (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Betrag (${EURO})` }, separatethousands: true },
     },
   };
 }
 
 function buildMonthlyStacked(expenses: ExpenseRecord[]): ChartFigure {
-  const byMonth: Record<string, Record<string, number>> = {};
-  for (const e of expenses) {
-    if (!byMonth[e.Monat]) byMonth[e.Monat] = {};
-    byMonth[e.Monat][e.Kategorie] =
-      (byMonth[e.Monat][e.Kategorie] || 0) + e.Betrag;
-  }
-  const months = Object.keys(byMonth).sort();
-  const labels = months.map(fmtMonth);
-  const categories = [...new Set(expenses.map((e) => e.Kategorie))];
-  const colors = [
-    "#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa",
-    "#00acc1", "#f4511e", "#3949ab", "#c0ca33", "#6d4c41",
-  ];
-
-  const traces: Data[] = categories.map((cat, i) => ({
-    type: "bar" as const,
-    name: cat,
-    x: labels,
-    y: months.map((m) => byMonth[m][cat] || 0),
-    marker: { color: colors[i % colors.length] },
-    hovertemplate: `%{x}<br>${cat}: %{y:.2f} \u20ac<extra></extra>`,
-  } as Data));
+  const { months, categories, data } = groupMonthlyByCategory(expenses);
+  const labels = months.map(fmtMonat);
+  const traces = buildBarTraces(labels, categories, data, COLORS_CATEGORY);
 
   return {
     data: traces,
@@ -189,33 +272,16 @@ function buildMonthlyStacked(expenses: ExpenseRecord[]): ChartFigure {
       title: { text: "Monatliche Ausgaben nach Kategorie" },
       barmode: "stack" as const,
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Betrag (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Betrag (${EURO})` }, separatethousands: true },
       legend: { orientation: "h" as const, y: -0.2 },
     },
   };
 }
 
 function buildIncomeBar(income: IncomeRecord[]): ChartFigure {
-  const byMonth: Record<string, Record<string, number>> = {};
-  const senders = new Set<string>();
-  for (const i of income) {
-    const sender = normalizeSender(i["Zahlungspflichtige*r"]);
-    senders.add(sender);
-    if (!byMonth[i.Monat]) byMonth[i.Monat] = {};
-    byMonth[i.Monat][sender] = (byMonth[i.Monat][sender] || 0) + i.Betrag;
-  }
-  const months = Object.keys(byMonth).sort();
-  const labels = months.map(fmtMonth);
-  const colors = ["#43a047", "#1e88e5", "#fb8c00", "#8e24aa", "#e53935", "#00acc1"];
-
-  const traces: Data[] = [...senders].map((sender, i) => ({
-    type: "bar" as const,
-    name: sender,
-    x: labels,
-    y: months.map((m) => byMonth[m][sender] || 0),
-    marker: { color: colors[i % colors.length] },
-    hovertemplate: `${sender}<br>%{x}<br>%{y:.2f} \u20ac<extra></extra>`,
-  } as Data));
+  const { months, senders, data } = groupMonthlyBySender(income);
+  const labels = months.map(fmtMonat);
+  const traces = buildBarTraces(labels, senders, data, COLORS_SENDER);
 
   return {
     data: traces,
@@ -223,79 +289,40 @@ function buildIncomeBar(income: IncomeRecord[]): ChartFigure {
       title: { text: "Monatliche Einnahmen nach Sender" },
       barmode: "stack" as const,
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Betrag (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Betrag (${EURO})` }, separatethousands: true },
       legend: { orientation: "h" as const, y: -0.2 },
     },
   };
 }
 
-function buildIncomePie(income: IncomeRecord[]): ChartFigure {
-  const grouped: Record<string, number> = {};
-  for (const i of income) {
-    const sender = normalizeSender(i["Zahlungspflichtige*r"]);
-    grouped[sender] = (grouped[sender] || 0) + i.Betrag;
-  }
-  const labels = Object.keys(grouped);
-  const values = Object.values(grouped);
-  const total = values.reduce((a, b) => a + b, 0);
-
-  return {
-    data: [
-      {
-        type: "pie" as const,
-        labels,
-        values,
-        textinfo: "label+percent" as const,
-        textposition: "outside" as const,
-        hovertemplate: "%{label}<br>%{value:.2f} \u20ac (%{percent})<extra></extra>",
-      } as Data,
-    ],
-    layout: {
-      title: { text: `Einnahmen nach Sender (Gesamt: ${total.toFixed(2)} \u20ac)` },
-    },
-  };
-}
-
 function buildIncomeLine(income: IncomeRecord[]): ChartFigure {
-  const byMonth: Record<string, Record<string, number>> = {};
-  const senders = new Set<string>();
-  for (const i of income) {
-    const sender = normalizeSender(i["Zahlungspflichtige*r"]);
-    senders.add(sender);
-    if (!byMonth[i.Monat]) byMonth[i.Monat] = {};
-    byMonth[i.Monat][sender] = (byMonth[i.Monat][sender] || 0) + i.Betrag;
-  }
-  const months = Object.keys(byMonth).sort();
-  const labels = months.map(fmtMonth);
-  const colors = ["#43a047", "#1e88e5", "#fb8c00", "#8e24aa", "#e53935", "#00acc1"];
-
-  const traces: Data[] = [...senders].map((sender, i) => ({
-    type: "scatter" as const,
-    mode: "lines+markers" as const,
-    name: sender,
-    x: labels,
-    y: months.map((m) => byMonth[m][sender] || 0),
-    line: { color: colors[i % colors.length], width: 2 },
-    marker: { color: colors[i % colors.length], size: 6 },
-    hovertemplate: `${sender}<br>%{x}<br>%{y:.2f} \u20ac<extra></extra>`,
-  } as Data));
+  const { months, senders, data } = groupMonthlyBySender(income);
+  const labels = months.map(fmtMonat);
+  const traces = buildScatterTraces(labels, senders, data, COLORS_SENDER);
 
   return {
     data: traces,
     layout: {
       title: { text: "Monatliche Einnahmen nach Sender" },
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Betrag (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Betrag (${EURO})` }, separatethousands: true },
       legend: { orientation: "h" as const, y: -0.25 },
     },
   };
 }
 
+function buildIncomePie(income: IncomeRecord[]): ChartFigure {
+  const grouped = groupBySender(income);
+  const labels = Object.keys(grouped);
+  const values = Object.values(grouped);
+  const total = values.reduce((a, b) => a + b, 0);
+  return buildPieFigure(labels, values, total, "Einnahmen nach Sender");
+}
+
 function buildSaldo(profitLoss: ProfitLossRecord[]): ChartFigure {
-  const months = profitLoss.map((p) => p.Monat);
-  const labels = months.map(fmtMonth);
+  const labels = profitLoss.map((p) => fmtMonat(p.Monat));
   const values = profitLoss.map((p) => p.Differenz);
-  const colors = values.map((v) => v >= 0 ? "#2e7d32" : "#c62828");
+  const colors = values.map((v) => v >= 0 ? COLOR_POSITIVE : COLOR_NEGATIVE);
 
   return {
     data: [
@@ -304,21 +331,20 @@ function buildSaldo(profitLoss: ProfitLossRecord[]): ChartFigure {
         x: labels,
         y: values,
         marker: { color: colors },
-        hovertemplate: "%{x}<br>%{y:.2f} \u20ac<extra></extra>",
+        hovertemplate: HOVER_TEMPLATE,
         name: "Saldo",
       } as Data,
     ],
     layout: {
       title: { text: "Gewinn / Verlust pro Monat" },
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Saldo (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Saldo (${EURO})` }, separatethousands: true },
     },
   };
 }
 
 function buildIncomeVsExpenses(profitLoss: ProfitLossRecord[]): ChartFigure {
-  const months = profitLoss.map((p) => p.Monat);
-  const labels = months.map(fmtMonth);
+  const labels = profitLoss.map((p) => fmtMonat(p.Monat));
 
   return {
     data: [
@@ -327,23 +353,23 @@ function buildIncomeVsExpenses(profitLoss: ProfitLossRecord[]): ChartFigure {
         name: "Einnahmen",
         x: labels,
         y: profitLoss.map((p) => p.Einnahmen),
-        marker: { color: "#43a047" },
-        hovertemplate: "%{x}<br>%{y:.2f} \u20ac<extra></extra>",
+        marker: { color: COLOR_INCOME },
+        hovertemplate: HOVER_TEMPLATE,
       } as Data,
       {
         type: "bar" as const,
         name: "Ausgaben",
         x: labels,
         y: profitLoss.map((p) => p.Ausgaben),
-        marker: { color: "#e53935" },
-        hovertemplate: "%{x}<br>%{y:.2f} \u20ac<extra></extra>",
+        marker: { color: COLOR_EXPENSE },
+        hovertemplate: HOVER_TEMPLATE,
       } as Data,
     ],
     layout: {
       title: { text: "Einnahmen vs. Ausgaben pro Monat" },
       barmode: "group" as const,
       xaxis: { title: { text: "Monat" } },
-      yaxis: { title: { text: "Betrag (\u20ac)" }, separatethousands: true },
+      yaxis: { title: { text: `Betrag (${EURO})` }, separatethousands: true },
       legend: { orientation: "h" as const, y: -0.2 },
     },
   };

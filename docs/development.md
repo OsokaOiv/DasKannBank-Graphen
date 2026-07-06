@@ -27,8 +27,9 @@ Kernregeln:
 ├── desktop/
 │   ├── src/              ← React-Frontend (TypeScript)
 │   │   ├── components/   ← UI-Komponenten (ChartView, DataTables, etc.)
+│   │   ├── themes.ts     ← Theme-Definitionen (Standard, Terminal Pro, Neon Finance, Cyber Dashboard)
 │   │   ├── api.ts        ← Tauri IPC-Calls
-│   │   └── __tests__/    ← 5 Frontend-Tests (Vitest)
+│   │   └── __tests__/    ← 7 Frontend-Tests (Vitest)
 │   └── src-tauri/
 │       ├── src/          ← Tauri-Backend (Rust)
 │       └── dkb-core/
@@ -71,7 +72,7 @@ cd desktop && cargo test
 | `pdf_to_csv.rs` | 16 | `convert_pdf`, Zeilenerkennung, Footer-Filter |
 | `util.rs` | 7 | `parse_amount`, `collect_files`, `format_currency`, `month_label` |
 
-### Frontend (5 Tests — Vitest)
+### Frontend (7 Tests — Vitest)
 
 ```bash
 cd desktop && npm test
@@ -79,7 +80,7 @@ cd desktop && npm test
 
 | Datei | Tests | Getestete Szenarien |
 |---|---|---|
-| `App.test.tsx` | 5 | Dashboard-Rendering, Tab-Wechsel, Dark-Mode-Toggle |
+| `App.test.tsx` | 7 | Dashboard-Rendering, Tab-Wechsel, Dark-Mode-Toggle, Theme-Selector, Theme-Wechsel |
 
 ### Python (Legacy — 29 Tests)
 
@@ -120,6 +121,20 @@ python3 -m pytest tests/test_pipeline.py::test_parse_amount_german_negative -v  
 - Zwei Arbeitskopien: `Projects/DasKannBank-Graphen` (Entwicklung) und `DKB/DasKannBank-Graphen` (echte Daten)
 - Git Push/Pull manuell zwischen den Umgebungen
 - Nach Pull immer `make install` (Linux/macOS) oder `pip install -r requirements.txt` (Windows)
+
+## Theme-System
+
+Das Theme-System verwendet CSS Custom Properties auf 4 Ebenen:
+
+1. **`:root`** – Light-Mode-Farben (Standard-Theme)
+2. **`.dark`** – Dark-Mode-Farben (Standard-Theme)
+3. **`.theme-terminal-pro.dark`**, **`.theme-neon-finance.dark`**, **`.theme-cyber-dashboard.dark`** – Always-Dark-Theme-Farben
+4. **`themes.ts`** – Steuert Persistenz (`localStorage`-Key `dkb-theme`) und Anwendung der Theme-Klassen auf `<html>`
+
+Neue Themes hinzufügen:
+1. In `themes.ts` neue `ThemeId` + `ThemeDef` eintragen
+2. In `App.css` neue `.theme-*.dark`-CSS-Vars definieren
+3. `applyTheme()` in `themes.ts` aktualisieren (für root-Klasse)
 
 ## Cross-Plattform-Hinweise
 

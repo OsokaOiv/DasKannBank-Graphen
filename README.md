@@ -12,7 +12,7 @@
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](docs/usage.md#windows-befehle-ohne-make)
 [![Python tests](https://img.shields.io/badge/Python%20tests-29%20passed-brightgreen)](tests/)
 [![Rust tests](https://img.shields.io/badge/Rust%20tests-35%20passed-brightgreen)](desktop/src-tauri/dkb-core/)
-[![Frontend tests](https://img.shields.io/badge/Frontend%20tests-5%20passed-brightgreen)](desktop/src/__tests__/)
+[![Frontend tests](https://img.shields.io/badge/Frontend%20tests-7%20passed-brightgreen)](desktop/src/__tests__/)
 
 <br>
 
@@ -87,13 +87,13 @@ make test
 cd desktop && cargo test
 ```
 
-### Frontend (5 Tests)
+### Frontend (7 Tests)
 
 ```bash
 cd desktop && npm test
 ```
 
-CI runs Python tests on every push across Python 3.10–3.13 on Linux, macOS, and Windows (Rust + Frontend CI planned).
+CI runs Rust + Frontend + Python tests on every push, plus Tauri builds for Linux, macOS (x86_64 + arm64), and Windows.
 
 ---
 

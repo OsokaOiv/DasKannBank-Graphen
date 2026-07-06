@@ -72,54 +72,57 @@ fn parse_pdf_text(text: &str) -> Vec<CsvRow> {
             continue;
         }
 
-        if let Some((day, month, year)) = parse_date_prefix(line) {
-            let rest = &line[10..].trim_start();
-            if let Some((sign, raw_amount)) = extract_amount(rest) {
-                let amount = raw_amount.replace('.', "").replace(',', ".");
-                let parsed: f64 = match amount.parse() {
-                    Ok(v) => v,
-                    Err(_) => continue,
-                };
-                let signed = if sign == "-" { -parsed } else { parsed };
-                let display_amount = format!("{:+.2}", signed).replace('.', ",");
-                let ttype = type_from_rest(rest, sign, raw_amount);
-
-                rows.push(CsvRow {
-                    buchungsdatum: format!("{}.{}.{}", day, month, &year[2..]),
-                    wertstellung: format!("{}.{}.{}", day, month, &year[2..]),
-                    zahlungsempfaenger: ttype.clone(),
-                    verwendungszweck: ttype,
-                    umsatztyp: if signed < 0.0 { "Ausgang".to_string() } else { "Eingang".to_string() },
-                    betrag: display_amount,
-                });
-                continue;
-            }
-        }
-
-        if let Some(last) = rows.last_mut() {
-            if last.zahlungsempfaenger == last.verwendungszweck {
-                last.zahlungsempfaenger = line.to_string();
-            }
-            last.verwendungszweck.push(' ');
-            last.verwendungszweck.push_str(line);
+        if let Some(row) = try_parse_transaction(line) {
+            rows.push(row);
+        } else if let Some(last) = rows.last_mut() {
+            append_to_last(last, line);
         }
     }
 
     rows
 }
 
-fn type_from_rest(rest: &str, sign: &str, raw_amount: &str) -> String {
-    let trimmed = rest.trim_end();
-    let end = if sign.is_empty() {
-        trimmed.len().saturating_sub(raw_amount.len())
-    } else {
-        let amount_with_sign = format!("{}{}", sign, raw_amount);
-        trimmed.rfind(&amount_with_sign).unwrap_or(trimmed.len())
-    };
-    trimmed[..end.min(trimmed.len())].trim().to_string()
+fn try_parse_transaction(line: &str) -> Option<CsvRow> {
+    let (day, month, year, rest) = parse_date_prefix(line)?;
+    let rest = rest.trim_start();
+    let (vorzeichen, raw_amount) = extract_amount(rest)?;
+
+    let normalized = raw_amount.replace('.', "").replace(',', ".");
+    let parsed: f64 = normalized.parse().ok()?;
+    let signed = if vorzeichen == "-" { -parsed } else { parsed };
+    let display_amount = format!("{:+.2}", signed).replace('.', ",");
+    let empfaenger = extract_purpose(rest, vorzeichen, raw_amount);
+
+    Some(CsvRow {
+        buchungsdatum: format!("{}.{}.{}", day, month, &year[2..]),
+        wertstellung: format!("{}.{}.{}", day, month, &year[2..]),
+        zahlungsempfaenger: empfaenger.clone(),
+        verwendungszweck: empfaenger,
+        umsatztyp: if signed < 0.0 { "Ausgang".to_string() } else { "Eingang".to_string() },
+        betrag: display_amount,
+    })
 }
 
-fn parse_date_prefix(s: &str) -> Option<(&str, &str, &str)> {
+fn append_to_last(last: &mut CsvRow, line: &str) {
+    if last.zahlungsempfaenger == last.verwendungszweck {
+        last.zahlungsempfaenger = line.to_string();
+    }
+    last.verwendungszweck.push(' ');
+    last.verwendungszweck.push_str(line);
+}
+
+fn extract_purpose(rest: &str, vorzeichen: &str, raw_amount: &str) -> String {
+    let bereinigt = rest.trim_end();
+    let end = if vorzeichen.is_empty() {
+        bereinigt.len().saturating_sub(raw_amount.len())
+    } else {
+        let amount_with_sign = format!("{}{}", vorzeichen, raw_amount);
+        bereinigt.rfind(&amount_with_sign).unwrap_or(bereinigt.len())
+    };
+    bereinigt[..end.min(bereinigt.len())].trim().to_string()
+}
+
+fn parse_date_prefix(s: &str) -> Option<(&str, &str, &str, &str)> {
     let s = s.trim_start();
     if s.len() < 10 {
         return None;
@@ -136,7 +139,7 @@ fn parse_date_prefix(s: &str) -> Option<(&str, &str, &str)> {
     if !year.as_bytes().iter().all(|b| b.is_ascii_digit()) {
         return None;
     }
-    Some((day, month, year))
+    Some((day, month, year, &s[10..]))
 }
 
 fn extract_amount(s: &str) -> Option<(&str, &str)> {
@@ -158,12 +161,12 @@ fn extract_amount(s: &str) -> Option<(&str, &str)> {
     }
 
     if i > 0 && (bytes[i - 1] == b'-' || bytes[i - 1] == b'+') {
-        let sign_str = if bytes[i - 1] == b'-' { "-" } else { "+" };
+        let vorzeichen = if bytes[i - 1] == b'-' { "-" } else { "+" };
         i -= 1;
         while i > 0 && bytes[i - 1].is_ascii_whitespace() {
             i -= 1;
         }
-        Some((sign_str, num_part))
+        Some((vorzeichen, num_part))
     } else {
         Some(("", num_part))
     }
@@ -228,7 +231,7 @@ mod tests {
     #[test]
     fn test_parse_date_prefix_valid() {
         let result = parse_date_prefix("22.12.2025 REWE Muenchen -21,94");
-        assert_eq!(result, Some(("22", "12", "2025")));
+        assert_eq!(result, Some(("22", "12", "2025", " REWE Muenchen -21,94")));
     }
 
     #[test]
