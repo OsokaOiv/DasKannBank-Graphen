@@ -111,7 +111,7 @@ make app
 ## Desktop-App (Tauri + React + Rust)
 
 Die Desktop-App ist eine native Tauri-Anwendung mit React-Frontend und Rust-Backend (`dkb-core`).
-Kein Python oder FastAPI mehr nötig – die gesamte Datenverarbeitung läft in Rust.
+Kein Python oder FastAPI mehr nötig – die gesamte Datenverarbeitung läuft in Rust.
 
 ### Voraussetzungen
 
@@ -144,13 +144,15 @@ npm run tauri build
 # Erzeugt Installer in desktop/src-tauri/target/release/bundle/
 ```
 
+Unter Windows wird `powershell -NoProfile -Command` zur PATH-Auflösung genutzt (konfiguriert in `tauri.conf.json`).
+
 ### Bedienung
 
 | Element | Beschreibung |
 |---|---|
 | Tab "Dashboard" | Diagramme + Kennzahlen |
 | Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
-| 🌙/☀️ | Dark-Mode-Umschalter |
+| 🌙/☀️ | Dark-Mode-Umschalter (setzt Plotly `paper_bgcolor`/`plot_bgcolor`/`font.color`) |
 
 ### Datenverzeichnis
 
@@ -161,9 +163,17 @@ Die App speichert Konfiguration und importierte Dateien unter `~/.config/dkb-fin
 | `categories.toml` | Kategorien mit Keywords (editierbar im Tab "Daten") |
 | `pipeline.toml` | Pipeline-Konfiguration |
 | `csv/` | Importierte CSV-Kontoauszüge |
-| `pdf/` | Importierte PDF-Kontoauszüge |
+| `pdf/` | Importierte PDF-Kontoauszüge (werden beim Import automatisch konvertiert) |
 
 ## PDF → CSV
+
+### Desktop-App (empfohlen)
+
+PDF-Kontoauszüge werden über den Tab "Daten" → "Datei importieren" geladen.
+Die PDF wird automatisch mit dem Rust-`pdf_to_csv`-Modul in CSV konvertiert und direkt ins `csv/`-Verzeichnis geschrieben.
+Kein manueller Konvertierungsschritt nötig.
+
+### Python-Legacy (Kommandozeile)
 
 DKB-PDF-Kontoauszüge in `pdf/` ablegen, dann:
 
@@ -181,11 +191,20 @@ Speichert Roh-Text als `.txt`-Datei zum Prüfen der Erkennung.
 
 ## Tests
 
+### Tauri Desktop App
+
+```bash
+cd desktop && cargo test      # 35 Rust-Tests
+cd desktop && npm test        # 5 Frontend-Tests (Vitest)
+```
+
+### Python-Pipeline (Legacy)
+
 ```bash
 make test
 ```
 
-Führt alle Unit-Tests aus (derzeit 34 Tests: 22 pipeline + 12 app).
+Führt alle Python Unit-Tests aus (29 Tests: 22 pipeline + 7 app).
 
 ## Aufräumen
 
@@ -208,8 +227,10 @@ Alle Python-Befehle funktionieren identisch – nur der Aufruf unterscheidet sic
 | Pipeline (income-pie) | `make run-income-pie` | `.venv\Scripts\activate` + `python pipeline.py income-pie` |
 | Pipeline (profit) | `make run-profit` | `.venv\Scripts\activate` + `python pipeline.py profit` |
 | Dashboard | `make app` | `.venv\Scripts\activate` + `streamlit run app.py` |
-| PDF → CSV | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |
-| Tests | `make test` | `.venv\Scripts\activate` + `python -m pytest tests/ -v` |
+| PDF → CSV (Legacy) | `make pdf2csv` | `.venv\Scripts\activate` + `python pdf2csv.py` |
+| Tests (Legacy) | `make test` | `.venv\Scripts\activate` + `python -m pytest tests/ -v` |
+| Rust-Tests | `cargo test` | `cargo test` (in `desktop/`) |
+| Frontend-Tests | `npm test` | `npm test` (in `desktop/`) |
 | Aufräumen | `make clean` | `Remove-Item graphs\*.png -Force; Remove-Item .venv -Recurse -Force` |
 
 **Hinweis:** Das venv muss vor jedem Befehl aktiviert werden (`.venv\Scripts\activate`).

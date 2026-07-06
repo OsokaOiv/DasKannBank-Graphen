@@ -24,9 +24,19 @@ Kernregeln:
 ├── tests/
 │   ├── test_pipeline.py  ← 22 Tests
 │   └── test_app.py       ← 7 Tests
+├── desktop/
+│   ├── src/              ← React-Frontend (TypeScript)
+│   │   ├── components/   ← UI-Komponenten (ChartView, DataTables, etc.)
+│   │   ├── api.ts        ← Tauri IPC-Calls
+│   │   └── __tests__/    ← 5 Frontend-Tests (Vitest)
+│   └── src-tauri/
+│       ├── src/          ← Tauri-Backend (Rust)
+│       └── dkb-core/
+│           └── src/      ← 6 Module (config, csv_reader, categorizer,
+│                              aggregator, util, pdf_to_csv) — 35 Tests
 ├── app.py                ← Streamlit-Dashboard
 ├── pipeline.py           ← CLI-Backend (Daten + matplotlib)
-├── pdf2csv.py            ← PDF-Konverter
+├── pdf2csv.py            ← PDF-Konverter (Python-Legacy)
 ├── categories.toml       ← Keyword-basierte Kategorien
 ├── pipeline.toml         ← Diagramm-Konfiguration
 ├── code-principles.md    ← Clean Code Regeln
@@ -39,7 +49,7 @@ Kernregeln:
 1. Änderung planen (Verständnis der Codebase, ggf. nachfragen)
 2. Arbeit in kleine Schritte zerlegen
 3. Implementieren (Clean Code beachten)
-4. Tests ausführen: `make test`
+4. Tests ausführen
 5. Dokumentation aktualisieren
 6. Auf Dead Code prüfen
 7. Nochmal testen
@@ -47,20 +57,40 @@ Kernregeln:
 
 ## Tests
 
-### Ausführen
+### Rust (35 Tests — `cargo check` zero warnings)
+
+```bash
+cd desktop && cargo test
+```
+
+| Modul | Tests | Getestete Funktionen |
+|---|---|---|
+| `aggregator.rs` | 4 | `prepare_expenses`, `prepare_income`, `prepare_profit_loss`, `build_dashboard_data` |
+| `categorizer.rs` | 4 | `from_toml`, `categorize`, `all_categories` |
+| `csv_reader.rs` | 4 | `parse_date`, `read_csv`, `deduplicate` |
+| `pdf_to_csv.rs` | 16 | `convert_pdf`, Zeilenerkennung, Footer-Filter |
+| `util.rs` | 7 | `parse_amount`, `collect_files`, `format_currency`, `month_label` |
+
+### Frontend (5 Tests — Vitest)
+
+```bash
+cd desktop && npm test
+```
+
+| Datei | Tests | Getestete Szenarien |
+|---|---|---|
+| `App.test.tsx` | 5 | Dashboard-Rendering, Tab-Wechsel, Dark-Mode-Toggle |
+
+### Python (Legacy — 29 Tests)
 
 ```bash
 make test
 ```
 
-Oder direkt:
-
 ```bash
 python3 -m pytest tests/ -v
 python3 -m pytest tests/test_pipeline.py::test_parse_amount_german_negative -v  # einzelner Test
 ```
-
-### Testabdeckung
 
 | Modul | Tests | Getestete Funktionen |
 |---|---|---|
@@ -69,14 +99,9 @@ python3 -m pytest tests/test_pipeline.py::test_parse_amount_german_negative -v  
 
 ### Neue Tests schreiben
 
-Tests in `tests/` ablegen, Dateiname `test_*.py`. Funktionen mit `def test_*()`.
-
-Verfügbare Module importieren:
-
-```python
-from pipeline import parse_amount, assign_categories
-from app import filter_expenses
-```
+**Python (Legacy):** Tests in `tests/` ablegen, Dateiname `test_*.py`. Funktionen mit `def test_*()`.
+**Rust:** Tests mit `#[test]` im selben Modul oder in `tests/`-Integrationstests.
+**Frontend:** Tests in `desktop/src/__tests__/` mit Vitest + Testing Library.
 
 ## Hinzufügen neuer Diagrammtypen
 
@@ -98,8 +123,9 @@ from app import filter_expenses
 
 ## Cross-Plattform-Hinweise
 
-- **Pfade**: Alle Pfade im Code verwenden `pathlib.Path` – funktioniert auf Linux, macOS und Windows
+- **Pfade**: Alle Pfade im Code verwenden `pathlib.Path` (Python) oder `PathBuf` (Rust) – funktioniert auf Linux, macOS und Windows
 - **Python-Version**: Beliebig ≥ 3.10
 - **Makefile**: Nur für Linux/macOS; auf Windows `requirements.txt` + direkte Python-/Streamlit-Befehle verwenden (siehe [Nutzung](usage.md#windows-befehle-ohne-make))
 - **Venv**: Windows nutzt `.venv\Scripts\activate` statt `.venv/bin/activate`
 - **Encoding**: CSVs werden mit `utf-8-sig` gelesen – funktioniert auf allen Plattformen
+- **Tauri-Build (Windows)**: `tauri.conf.json` verwendet `powershell -NoProfile -Command` für zuverlässige PATH-Auflösung bei `beforeDevCommand`/`beforeBuildCommand`
