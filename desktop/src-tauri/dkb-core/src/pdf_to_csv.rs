@@ -14,8 +14,6 @@ const FOOTER_PREFIXES: &[&str] = &[
     "Seite", "Kontoauszug", "Saldo",
 ];
 
-const SECTION_MARKERS: &[&str] = &["Kontoumsätze", "Umsatzliste"];
-
 struct CsvRow {
     buchungsdatum: String,
     wertstellung: String,
@@ -50,7 +48,7 @@ pub fn convert_pdf(path: &Path) -> Result<(), String> {
 
 fn parse_pdf_text(text: &str) -> Vec<CsvRow> {
     let mut rows = Vec::new();
-    let mut in_section = false;
+    let mut in_transaction_block = false;
 
     for raw_line in text.lines() {
         let line = raw_line.trim();
@@ -58,24 +56,17 @@ fn parse_pdf_text(text: &str) -> Vec<CsvRow> {
             continue;
         }
 
-        if is_section_marker(line) {
-            in_section = true;
-            continue;
-        }
-
-        if !in_section {
-            continue;
-        }
-
         if is_footer_line(raw_line) {
-            in_section = false;
-            continue;
+            break;
         }
 
         if let Some(row) = try_parse_transaction(line) {
             rows.push(row);
-        } else if let Some(last) = rows.last_mut() {
-            append_to_last(last, line);
+            in_transaction_block = true;
+        } else if in_transaction_block {
+            if let Some(last) = rows.last_mut() {
+                append_to_last(last, line);
+            }
         }
     }
 
@@ -170,16 +161,6 @@ fn extract_amount(s: &str) -> Option<(&str, &str)> {
     } else {
         Some(("", num_part))
     }
-}
-
-fn is_section_marker(line: &str) -> bool {
-    let trimmed = line.trim();
-    for marker in SECTION_MARKERS {
-        if trimmed.contains(marker) {
-            return true;
-        }
-    }
-    false
 }
 
 fn is_footer_line(line: &str) -> bool {
@@ -284,13 +265,6 @@ mod tests {
     }
 
     #[test]
-    fn test_is_section_marker() {
-        assert!(is_section_marker("Kontoumsätze"));
-        assert!(is_section_marker("Umsatzliste"));
-        assert!(!is_section_marker("22.12.2025 REWE -21,94"));
-    }
-
-    #[test]
     fn test_parse_pdf_text_single() {
         let text = "Kontoumsätze\n22.12.2025 REWE Muenchen -21,94\nSaldo";
         let rows = parse_pdf_text(text);
@@ -328,10 +302,10 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_pdf_text_no_section_marker() {
+    fn test_parse_pdf_text_ignores_non_date_lines() {
         let text = "22.12.2025 REWE -21,94\n";
         let rows = parse_pdf_text(text);
-        assert_eq!(rows.len(), 0);
+        assert_eq!(rows.len(), 1);
     }
 
     #[test]
