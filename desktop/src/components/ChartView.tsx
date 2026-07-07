@@ -12,10 +12,14 @@ interface ChartFigure {
 }
 
 interface Props {
-  dark?: boolean;
   expenses: ExpenseRecord[];
   income: IncomeRecord[];
   profitLoss: ProfitLossRecord[];
+}
+
+function cssVar(name: string): string {
+  if (typeof document === "undefined") return "";
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 const COLOR_EXPENSE = "#e53935";
@@ -173,7 +177,7 @@ const CHART_TYPES: ChartType[] = [
   "G/V \u2013 Vergleich (Monat)",
 ];
 
-export default function ChartView({ dark, expenses, income, profitLoss }: Props) {
+export default function ChartView({ expenses, income, profitLoss }: Props) {
   const [chartType, setChartType] = useState<ChartType>("Ausgaben \u2013 Kreis (Gesamt)");
 
   const figure: ChartFigure = useMemo(() => {
@@ -214,9 +218,9 @@ export default function ChartView({ dark, expenses, income, profitLoss }: Props)
         layout={{
           ...figure.layout,
           autosize: true,
-          paper_bgcolor: dark ? "#1a1f25" : "#fff",
-          plot_bgcolor: dark ? "#1a1f25" : "#fff",
-          font: { color: dark ? "#e2e8f0" : "#1a202c", family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif" },
+          paper_bgcolor: cssVar("--bg-card") || "#fff",
+          plot_bgcolor: cssVar("--bg-card") || "#fff",
+          font: { color: cssVar("--text") || "#1a202c", family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif" },
           margin: LAYOUT_MARGIN,
         }}
         config={{ responsive: true, displayModeBar: false }}

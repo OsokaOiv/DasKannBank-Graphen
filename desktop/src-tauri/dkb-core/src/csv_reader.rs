@@ -63,9 +63,11 @@ pub fn read_csv<P: AsRef<Path>>(path: P) -> Vec<Transaction> {
         };
 
         let get = |name: &str| -> Option<String> {
-            headers.iter().position(|h| h == name)
-                .and_then(|i| record.get(i))
-                .map(|s| s.trim_matches('"').trim().to_string())
+            let idx = headers.iter().position(|h| h == name)?;
+            match record.get(idx) {
+                Some(s) => Some(s.trim_matches('"').trim().to_string()),
+                None => Some(String::new()),
+            }
         };
 
         let betrag_raw = get("Betrag (€)").or_else(|| get("Betrag"));
@@ -156,6 +158,29 @@ mod tests {
         assert!((txns[0].betrag - (-21.94)).abs() < 0.001);
         assert_eq!(txns[1].betrag, 290.87);
         assert_eq!(txns[1].umsatztyp.as_deref(), Some("Eingang"));
+    }
+
+    #[test]
+    fn test_read_csv_verwendungszweck() {
+        let csv_data = r#""Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"IBAN";"Betrag (€)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"
+"22.12.25";"22.12.25";"Gebucht";"ISSUER";"REWE Muenchen";"VISA Einkauf";"Ausgang";"DE00000000000000000000";"-21,94";"";"";""
+"22.12.25";"22.12.25";"Gebucht";"COMPANY GMBH";"";"LOHN GEHALT 12/25";"Eingang";"DE00000000000000000000";"290,87";"";"";""
+"22.12.25";"22.12.25";"Gebucht";"ANONYM";"";"";"Eingang";"DE00...";"5,00";"";"";""
+"22.12.25";"22.12.25";"Gebucht";"ANONYM2";"EMPFAENGER";"";"Eingang";"DE00...";"10,00";"";"";""#;
+
+        let dir = std::env::temp_dir().join("dkb_test_zweck");
+        let _ = std::fs::create_dir_all(&dir);
+        let path = dir.join("test.csv");
+        std::fs::write(&path, csv_data).unwrap();
+
+        let txns = read_csv(&path);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_eq!(txns.len(), 4, "all 4 rows should parse");
+        assert_eq!(txns[0].verwendungszweck.as_deref(), Some("VISA Einkauf"), "normal value");
+        assert_eq!(txns[1].verwendungszweck.as_deref(), Some("LOHN GEHALT 12/25"), "second row");
+        assert_eq!(txns[2].verwendungszweck.as_deref(), Some(""), "empty quoted cell");
+        assert_eq!(txns[3].verwendungszweck.as_deref(), Some(""), "empty after semicolon");
     }
 
     #[test]

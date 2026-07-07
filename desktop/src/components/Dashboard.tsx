@@ -109,7 +109,6 @@ export default function Dashboard({ dark }: DashboardProps) {
         <h1>DKB Finanz-Dashboard</h1>
         <SummaryCards expenses={filteredExpenses} income={filteredIncome} />
         <ChartView
-          dark={dark}
           expenses={filteredExpenses}
           income={filteredIncome}
           profitLoss={filteredProfitLoss}

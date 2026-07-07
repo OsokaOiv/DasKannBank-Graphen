@@ -79,7 +79,7 @@ export default function DataView() {
       const d = await fetchDashboardData();
       setData(d);
     } catch (e) {
-      setImportMsg(e instanceof Error ? e.message : "Fehler beim Import");
+      setImportMsg(typeof e === "string" ? e : e?.message ?? "Fehler beim Import");
     }
   };
 
