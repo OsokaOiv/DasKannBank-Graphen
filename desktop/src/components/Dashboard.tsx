@@ -7,11 +7,12 @@ import ChartView from "./ChartView";
 import DataTables from "./DataTables";
 import Uncategorized from "./Uncategorized";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface DashboardProps {
   dark?: boolean;
 }
 
-export default function Dashboard({ dark }: DashboardProps) {
+export default function Dashboard(_props: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
