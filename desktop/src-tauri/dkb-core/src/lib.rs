@@ -41,6 +41,7 @@ pub struct ExpenseRecord {
     pub betrag: f64,
     #[serde(rename = "Zahlungsempfänger*in")]
     pub zahlungsempfaenger: Option<String>,
+    #[serde(rename = "Verwendungszweck")]
     pub verwendungszweck: Option<String>,
 }
 
@@ -54,6 +55,7 @@ pub struct IncomeRecord {
     pub betrag: f64,
     #[serde(rename = "Zahlungspflichtige*r")]
     pub zahlungspflichtiger: Option<String>,
+    #[serde(rename = "Verwendungszweck")]
     pub verwendungszweck: Option<String>,
 }
 
