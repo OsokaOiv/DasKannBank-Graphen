@@ -62,6 +62,11 @@ fn import_file(path: String) -> Result<String, String> {
             let dest = config::pdf_dir().join(file_name);
             std::fs::copy(&src, &dest).map_err(|e| e.to_string())?;
             pdf_to_csv::convert_pdf(&dest)?;
+            let stem = dest.file_stem().and_then(|s| s.to_str()).unwrap_or("export");
+            let csv_name = format!("{}.csv", stem);
+            let csv_src = config::pdf_dir().join(&csv_name);
+            let csv_dest = config::csv_dir().join(&csv_name);
+            std::fs::copy(&csv_src, &csv_dest).map_err(|e| format!("CSV kopieren fehlgeschlagen: {}", e))?;
             Ok(format!("{} konvertiert und importiert", file_name.to_string_lossy()))
         }
         _ => Err("Nur CSV- und PDF-Dateien unterstützt".to_string()),
