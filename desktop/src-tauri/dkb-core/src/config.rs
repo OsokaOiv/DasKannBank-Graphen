@@ -49,16 +49,18 @@ pub fn copy_defaults_if_missing(bundle_dir: &PathBuf) -> std::io::Result<()> {
 }
 
 pub fn save_category_entries(entries: &[crate::CategoryEntry]) -> std::io::Result<()> {
-    let mut output = String::new();
+    let mut table = toml::map::Map::new();
     for entry in entries {
-        output.push_str(&format!("[{}]\n", entry.name));
-        output.push_str("keywords = [\n");
-        for kw in &entry.keywords {
-            output.push_str(&format!("    {:?},\n", kw));
-        }
-        output.push_str("]\n\n");
+        let kws: Vec<toml::Value> = entry.keywords.iter()
+            .map(|k| toml::Value::String(k.clone()))
+            .collect();
+        let mut tbl = toml::map::Map::new();
+        tbl.insert("keywords".to_string(), toml::Value::Array(kws));
+        table.insert(entry.name.clone(), toml::Value::Table(tbl));
     }
-    fs::write(categories_path(), &output)
+    let value = toml::Value::Table(table);
+    let content = toml::to_string(&value).unwrap_or_default();
+    fs::write(categories_path(), &content)
 }
 
 pub fn load_category_entries() -> Vec<crate::CategoryEntry> {
