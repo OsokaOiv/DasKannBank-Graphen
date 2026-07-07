@@ -57,7 +57,8 @@ fn parse_pdf_text(text: &str) -> Vec<CsvRow> {
         }
 
         if is_footer_line(raw_line) {
-            break;
+            if in_transaction_block { break; }
+            continue;
         }
 
         if let Some(row) = try_parse_transaction(line) {
