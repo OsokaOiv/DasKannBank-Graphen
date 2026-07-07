@@ -40,7 +40,7 @@ cd desktop && npm run dev
 |---|---|
 | Tab "Dashboard" | Diagramme + Kennzahlen (8 Chart-Typen) |
 | Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
-| Design-Select | Themenauswahl: Standard (Hell/Dunkel), Terminal Pro (Cyan), Neon Finance (Smaragd), Cyber Dashboard (Bernstein) |
+| Design-Select | Themenauswahl: Standard, Terminal Pro, Neon Finance, Cyber Dashboard, Persona 5 (Rot), Persona 4 (Gold), Persona 3 (Blau) |
 | 🌙/☀️ | Dark-Mode-Umschalter (nur im Standard-Theme) |
 
 ### Datenverzeichnis
@@ -58,7 +58,7 @@ Die App speichert Konfiguration und importierte Dateien unter `~/.config/dkb-fin
 ```bash
 make test              # Rust + Frontend
 make test-rust         # Nur Rust (35 Tests)
-make test-frontend     # Nur Frontend (7 Tests)
+make test-frontend     # Nur Frontend (8 Tests)
 ```
 
 ### Windows-Build-Script

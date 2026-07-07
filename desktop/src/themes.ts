@@ -1,4 +1,4 @@
-export type ThemeId = "standard" | "terminal-pro" | "neon-finance" | "cyber-dashboard";
+export type ThemeId = "standard" | "terminal-pro" | "neon-finance" | "cyber-dashboard" | "persona-5" | "persona-4" | "persona-3";
 
 export interface ThemeDef {
   id: ThemeId;
@@ -32,6 +32,24 @@ export const THEMES: ThemeDef[] = [
     description: "Bernstein-Akzente, warmes Terminal-Glühen",
     alwaysDark: true,
   },
+  {
+    id: "persona-5",
+    label: "Persona 5 — Phantom Red",
+    description: "Comic-Rot, rebellisch, hoher Kontrast",
+    alwaysDark: false,
+  },
+  {
+    id: "persona-4",
+    label: "Persona 4 — Golden TV",
+    description: "Gelb/Gold, retro, warm",
+    alwaysDark: false,
+  },
+  {
+    id: "persona-3",
+    label: "Persona 3 — Deep Water",
+    description: "Wasser-Blau, melancholisch, tief",
+    alwaysDark: false,
+  },
 ];
 
 const STORAGE_THEME_KEY = "dkb-theme";
@@ -46,7 +64,7 @@ export function saveTheme(id: ThemeId): void {
 
 export function applyTheme(id: ThemeId, dark: boolean): void {
   const root = document.documentElement;
-  root.classList.remove("theme-standard", "theme-terminal-pro", "theme-neon-finance", "theme-cyber-dashboard");
+  root.classList.remove("theme-standard", "theme-terminal-pro", "theme-neon-finance", "theme-cyber-dashboard", "theme-persona-5", "theme-persona-4", "theme-persona-3");
   root.classList.add(`theme-${id}`);
   if (dark || id !== "standard") {
     root.classList.add("dark");
