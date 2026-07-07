@@ -40,8 +40,8 @@ cd desktop && npm run dev
 |---|---|
 | Tab "Dashboard" | Diagramme + Kennzahlen (8 Chart-Typen) |
 | Tab "Daten" | Kategorie-Editor, Datei-Import, Transaktionstabellen |
-| Design-Select | Themenauswahl: Standard, Terminal Pro, Neon Finance, Cyber Dashboard, Persona 5 (Rot), Persona 4 (Gold), Persona 3 (Blau) |
-| 🌙/☀️ | Dark-Mode-Umschalter (nur im Standard-Theme) |
+| Design-Select | Themenauswahl: Standard, Terminal Pro, Neon Finance, Cyber Dashboard, Phantom Red, Golden TV, Deep Water |
+| 🌙/☀️ | Dark-Mode-Umschalter (bei Themen mit Hell/Dunkel-Unterstützung) |
 
 ### Datenverzeichnis
 

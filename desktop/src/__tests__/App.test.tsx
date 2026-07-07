@@ -71,14 +71,15 @@ describe("App", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  it("switches to Persona 5 theme and toggles dark mode", async () => {
+  it("switches to Phantom Red theme and toggles light mode", async () => {
     render(<App />);
     const select = await screen.findByRole("combobox", { name: /design wählen/i }) as HTMLSelectElement;
     fireEvent.change(select, { target: { value: "persona-5" } });
     expect(document.documentElement.classList.contains("theme-persona-5")).toBe(true);
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
     const toggle = await screen.findByRole("button", { name: /helles design|dunkles design/i });
     expect(toggle).toBeInTheDocument();
     fireEvent.click(toggle);
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 });

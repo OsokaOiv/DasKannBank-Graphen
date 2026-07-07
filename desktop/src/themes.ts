@@ -34,19 +34,19 @@ export const THEMES: ThemeDef[] = [
   },
   {
     id: "persona-5",
-    label: "Persona 5 — Phantom Red",
+    label: "Phantom Red",
     description: "Comic-Rot, rebellisch, hoher Kontrast",
     alwaysDark: false,
   },
   {
     id: "persona-4",
-    label: "Persona 4 — Golden TV",
+    label: "Golden TV",
     description: "Gelb/Gold, retro, warm",
     alwaysDark: false,
   },
   {
     id: "persona-3",
-    label: "Persona 3 — Deep Water",
+    label: "Deep Water",
     description: "Wasser-Blau, melancholisch, tief",
     alwaysDark: false,
   },
@@ -66,7 +66,8 @@ export function applyTheme(id: ThemeId, dark: boolean): void {
   const root = document.documentElement;
   root.classList.remove("theme-standard", "theme-terminal-pro", "theme-neon-finance", "theme-cyber-dashboard", "theme-persona-5", "theme-persona-4", "theme-persona-3");
   root.classList.add(`theme-${id}`);
-  if (dark || id !== "standard") {
+  const def = THEMES.find((t) => t.id === id);
+  if (dark || (def?.alwaysDark ?? false)) {
     root.classList.add("dark");
   } else {
     root.classList.remove("dark");
