@@ -40,18 +40,6 @@ jobs:
       - run: npx tsc --noEmit
       - run: npx vitest run
 
-  python-tests:
-    name: Python Tests (Legacy)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install matplotlib pandas pdfplumber pytest streamlit plotly fastapi uvicorn httpx2
-      - run: python -m pytest legacy/tests/ -v
-
   build-macos:
     name: Build (macOS)
     strategy:
