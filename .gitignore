@@ -9,6 +9,10 @@ legacy/.streamlit/
 csv/
 pdf/
 
+# Root-level debug/test outputs (Python vs Rust comparison)
+/*.csv
+/*.txt
+
 # Build artifacts
 desktop/node_modules/
 desktop/src-tauri/target/

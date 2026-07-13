@@ -9,8 +9,9 @@
 [![Rust](https://img.shields.io/badge/Rust-1.85+-orange?logo=rust)](https://www.rust-lang.org)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](docs/usage.md)
-[![Rust tests](https://img.shields.io/badge/Rust%20tests-35%20passed-brightgreen)](desktop/src-tauri/dkb-core/)
+[![Rust tests](https://img.shields.io/badge/Rust%20tests-57%20passed-brightgreen)](desktop/src-tauri/dkb-core/)
 [![Frontend tests](https://img.shields.io/badge/Frontend%20tests-7%20passed-brightgreen)](desktop/src/__tests__/)
+[![Python tests](https://img.shields.io/badge/Python%20tests-34%20passed-brightgreen)](legacy/tests/)
 
 <br>
 
@@ -27,11 +28,11 @@ Native Desktop App für DKB-Kontoauszüge: **Rust**-Backend (`dkb-core`) für CS
 ## Features
 
 - **Automatischer CSV-Import** – semikolongetrennte DKB-CSVs (UTF-8 mit BOM), 12 Spalten
-- **PDF-Konvertierung** – DKB-PDF-Kontoauszüge werden beim Import automatisch nach CSV konvertiert (Rust `pdf_extract`)
+- **PDF-Konvertierung** – DKB-PDF-Kontoauszüge werden beim Import automatisch nach CSV konvertiert (Rust `pdf_extract`); unterstützt mehrzeilige Transaktionen und Beträge mit Tausendertrennzeichen
 - **Keyword-basierte Kategorisierung** – editierbare `categories.toml`, Case-Insensitive Substring-Matching über Empfänger + Verwendungszweck
 - **Deduplizierung** – SHA256-basiert, über mehrere Dateien hinweg
 - **8 Diagrammtypen** – Kreis (Gesamt), Linie (Monat), gestapelte Balken (Monat), Einnahmen (Balken/Linie/Kreis), Gewinn/Verlust (Saldo/Vergleich)
-- **4 Themes** – Standard (Hell/Dunkel), Terminal Pro (Cyan), Neon Finance (Smaragd), Cyber Dashboard (Bernstein)
+- **7 Themes** – Standard (Hell/Dunkel), Terminal Pro (Cyan), Neon Finance (Smaragd), Cyber Dashboard (Bernstein), Phantom Red, Golden TV, Deep Water
 - **Dark Mode** – Plotly-Farben passen sich an das aktuelle Theme an
 - **Cross-Plattform** – Linux, macOS (x86_64 + arm64), Windows
 
@@ -44,7 +45,7 @@ Native Desktop App für DKB-Kontoauszüge: **Rust**-Backend (`dkb-core`) für CS
 ```bash
 make build              # Tauri-Produktionbuild (Installer)
 make run                # Entwicklung mit Hot-Reload
-make test               # 35 Rust + 7 Frontend-Tests
+make test               # 57 Rust + 7 Frontend-Tests
 make test-rust          # Nur Rust-Tests
 make test-frontend      # Nur Frontend-Tests
 ```
@@ -81,7 +82,7 @@ make legacy-test        # 29 Python-Tests
 │   │   └── __tests__/    7 Frontend-Tests
 │   ├── src-tauri/
 │   │   ├── src/          Tauri-Backend (Rust)
-│   │   └── dkb-core/     6 Module, 35 Tests
+│   │   └── dkb-core/     6 Module, 57 Tests
 │   └── scripts/
 │       └── build-windows.ps1
 ├── legacy/               Python-Prototyp (Referenz)

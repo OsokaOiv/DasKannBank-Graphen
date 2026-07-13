@@ -99,7 +99,7 @@ pub fn read_csv<P: AsRef<Path>>(path: P) -> Vec<Transaction> {
 pub fn read_all_csvs(dir: &Path) -> Vec<Transaction> {
     let mut all: Vec<Transaction> = util::collect_files(dir, "csv")
         .iter()
-        .flat_map(|path| read_csv(path))
+        .flat_map(read_csv)
         .collect();
     deduplicate(&mut all);
     all

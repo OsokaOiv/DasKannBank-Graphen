@@ -139,4 +139,4 @@ Er wird nicht mehr aktiv weiterentwickelt, dient aber als Referenz-Implementieru
 - **PDF-Konvertierung bei Import**: PDF → CSV sofort beim Import, `get_data` nur CSV-Lese-Zugriff
 - **Konfiguration über TOML**: alle veränderbaren Werte in `.toml`, nicht im Code
 - **Plotly im React-Frontend**: interaktive Diagramme mit Dark-Mode-Unterstützung
-- **Theme-System**: 4 Themes (Standard, Terminal Pro, Neon Finance, Cyber Dashboard) über CSS Custom Properties; Design-Switcher in der Navigationsleiste; `themes.ts` steuert Persistenz und Anwendung der Theme-Klassen auf `<html>`
+- **Theme-System**: 7 Themes (Standard, Terminal Pro, Neon Finance, Cyber Dashboard, Phantom Red, Golden TV, Deep Water) über CSS Custom Properties; Design-Switcher in der Navigationsleiste; `themes.ts` steuert Persistenz und Anwendung der Theme-Klassen auf `<html>`

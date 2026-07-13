@@ -6,8 +6,8 @@ from pathlib import Path
 
 from pdfplumber import open as open_pdf
 
-PDF_DIR = Path(__file__).parent / "pdf"
-CSV_DIR = Path(__file__).parent / "csv"
+PDF_DIR = Path(__file__).parent.parent / "pdf"
+CSV_DIR = Path(__file__).parent.parent / "csv"
 
 AMOUNT_END = re.compile(r"\s+([\-+])?\s*(\d{1,3}(?:\.\d{3})*(?:,\d{2}))\s*$")
 DATE_START = re.compile(r"^(\d\d)\.(\d\d)\.(\d{4})")

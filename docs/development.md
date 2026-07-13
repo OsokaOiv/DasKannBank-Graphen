@@ -19,7 +19,7 @@ Kernregeln:
 ├── desktop/              ★ Hauptprodukt – Tauri + React + Rust
 │   ├── src/
 │   │   ├── components/   ← UI-Komponenten (ChartView, DataTables, etc.)
-│   │   ├── themes.ts     ← Theme-Definitionen (4 Themes)
+│   │   ├── themes.ts     ← Theme-Definitionen (7 Themes)
 │   │   ├── api.ts        ← Tauri IPC-Calls
 │   │   └── __tests__/    ← 7 Frontend-Tests (Vitest)
 │   ├── src-tauri/

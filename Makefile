@@ -64,7 +64,7 @@ $(LEGACY_VENV):
 	python3 -m venv $(LEGACY_VENV)
 
 legacy-setup: $(LEGACY_VENV)
-	$(LEGACY_PIP) install matplotlib pandas pdfplumber pytest streamlit plotly fastapi uvicorn[standard]
+	$(LEGACY_PIP) install -r legacy/requirements.txt fastapi uvicorn httpx2
 	@echo ""
 	@echo "Python-Prototyp einsatzbereit. Verwende 'make legacy-run' usw."
 
@@ -81,7 +81,7 @@ legacy-api: $(LEGACY_VENV)
 	$(LEGACY_PYTHON) legacy/api.py
 
 legacy-test: $(LEGACY_VENV)
-	$(LEGACY_PYTHON) -m pytest legacy/tests/ -v
+	cd legacy && ../$(LEGACY_VENV)/bin/python -m pytest tests/ -v
 
 # ============================================================
 # ◇ Aufräumen

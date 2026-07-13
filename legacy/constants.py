@@ -1,8 +1,8 @@
 from pathlib import Path
 
-CSV_DIR = Path(__file__).parent / "csv"
+CSV_DIR = Path(__file__).parent.parent / "csv"
 GRAPHS_DIR = Path(__file__).parent / "graphs"
-CATEGORIES_FILE = Path(__file__).parent / "categories.toml"
+CATEGORIES_FILE = Path(__file__).parent.parent / "categories.toml"
 CONFIG_FILE = Path(__file__).parent / "pipeline.toml"
 
 COL_SENDER = "Zahlungspflichtige*r"
